@@ -21,19 +21,6 @@
               0
             ]
           }
-        },
-        {
-          "glass" : false,
-          "hidden" : true,
-          "image-name" : "icon.svg",
-          "name" : "icon",
-          "position" : {
-            "scale" : 4.91,
-            "translation-in-points" : [
-              0,
-              0
-            ]
-          }
         }
       ],
       "shadow" : {
