@@ -9,9 +9,11 @@ const config: ExpoConfig = {
     "scheme": "dogwalk",
     "userInterfaceStyle": "automatic",
     "ios": {
+        "bundleIdentifier": "com.pro203s.dogwalk",
         "icon": "./assets/app.icon"
     },
     "android": {
+        "package": "com.pro203s.dogwalk",
         "icon": "./assets/images/android-icon.png",
         "adaptiveIcon": {
             "backgroundColor": "#FFFFFF",
