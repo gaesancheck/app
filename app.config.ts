@@ -1,22 +1,33 @@
 import { ExpoConfig } from '@expo/config';
 
+export const COLORS = {
+    "green_light1": "#aabb8d",
+    "green_light2": "#688f6e",
+    "green_dark1": "#2f6439",
+    "green_dark2": "#2a5032",
+    "white": "#eaf0e6",
+    "white2": "#faead7",
+    "yellow": "#edd693",
+    "background": "#F7F7F2",
+};
+
 const config: ExpoConfig = {
-    "name": "개산책",
-    "slug": "dogwalk",
+    "name": "PawStep",
+    "slug": "pawstep",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/android-icon.png",
-    "scheme": "dogwalk",
+    "scheme": "pawstep",
     "userInterfaceStyle": "automatic",
     "ios": {
-        "bundleIdentifier": "com.pro203s.dogwalk",
+        "bundleIdentifier": "kr.pro203s.pawstep",
         "icon": "./assets/app.icon"
     },
     "android": {
-        "package": "com.pro203s.dogwalk",
+        "package": "kr.pro203s.pawstep",
         "icon": "./assets/images/android-icon.png",
         "adaptiveIcon": {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "#E9F0E5",
             "foregroundImage": "./assets/images/android-icon-foreground.png",
             "backgroundImage": "./assets/images/android-icon-background.png",
             "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -32,14 +43,9 @@ const config: ExpoConfig = {
         [
             "expo-splash-screen",
             {
-                "backgroundColor": "#208AEF",
-                "image": "./assets/images/android-icon-foreground.png",
-                "imageWidth": 76,
-                "android": {
-                    "backgroundColor": "#FFFFFF",
-                    "image": "./assets/images/android-icon-foreground.png",
-                    "imageWidth": 200
-                }
+                "backgroundColor": "#F7F7F2",
+                "image": "./assets/images/icon.png",
+                "imageWidth": 187
             }
         ],
         "expo-font",
