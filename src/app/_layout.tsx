@@ -2,18 +2,28 @@ import { router, Stack } from "expo-router";
 import { useEffect } from "react";
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
+import * as DevClient from 'expo-dev-client';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
     useEffect(() => {
         (async () => {
+            if (__DEV__)
+                DevClient.registerDevMenuItems([
+                    {
+                        "name": "Reset Settings",
+                        "callback": () => router.push("/_sitemap"),
+                        "shouldCollapse": true
+                    }
+                ]);
+
             await Font.loadAsync({
                 "NanumSquareNeo-Light": require("@/assets/fonts/NanumSquareNeo-aLt.ttf"),
-                "NanumSquareNeo-Regular": require("@/assets/fonts/NanumSquareNeo-aLt.ttf"),
-                "NanumSquareNeo-Bold": require("@/assets/fonts/NanumSquareNeo-aLt.ttf"),
-                "NanumSquareNeo-ExtraBold": require("@/assets/fonts/NanumSquareNeo-aLt.ttf"),
-                "NanumSquareNeo-Heavy": require("@/assets/fonts/NanumSquareNeo-aLt.ttf"),
+                "NanumSquareNeo-Regular": require("@/assets/fonts/NanumSquareNeo-bRg.ttf"),
+                "NanumSquareNeo-Bold": require("@/assets/fonts/NanumSquareNeo-cBd.ttf"),
+                "NanumSquareNeo-ExtraBold": require("@/assets/fonts/NanumSquareNeo-dEb.ttf"),
+                "NanumSquareNeo-Heavy": require("@/assets/fonts/NanumSquareNeo-eHv.ttf"),
                 "온글잎 박다현체": require("@/assets/fonts/ParkDaHyeon.ttf"),
             });
 
