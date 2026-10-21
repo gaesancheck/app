@@ -47,7 +47,7 @@ function TabBarItem({
         hitSlop={15}
         style={styles.tabbarItem}
         onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             setScreen(screen);
         }}
     >
@@ -95,6 +95,7 @@ const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
         "backgroundColor": COLORS.background,
         "width": "100%",
         "paddingTop": safeArea.top,
+        "paddingBottom": 75 + safeArea.bottom,
         "paddingLeft": safeArea.left,
         "paddingRight": safeArea.right
     },

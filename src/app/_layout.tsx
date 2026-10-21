@@ -24,7 +24,7 @@ export default function RootLayout() {
                 "NanumSquareNeo-Bold": require("@/assets/fonts/NanumSquareNeo-cBd.ttf"),
                 "NanumSquareNeo-ExtraBold": require("@/assets/fonts/NanumSquareNeo-dEb.ttf"),
                 "NanumSquareNeo-Heavy": require("@/assets/fonts/NanumSquareNeo-eHv.ttf"),
-                "온글잎 박다현체": require("@/assets/fonts/ParkDaHyeon.ttf"),
+                "ParkDaHyeon": require("@/assets/fonts/ParkDaHyeon.ttf"), // 온글잎 박다현체
             });
 
             await SplashScreen.hideAsync();

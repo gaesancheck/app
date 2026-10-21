@@ -50,7 +50,9 @@ const config: ExpoConfig = {
         ],
         "expo-font",
         "expo-dev-client",
-        "expo-secure-store"
+        "expo-secure-store",
+        "expo-image",
+        "expo-web-browser"
     ],
     "experiments": {
         "typedRoutes": true,
