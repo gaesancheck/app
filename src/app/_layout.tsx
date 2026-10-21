@@ -12,7 +12,7 @@ export default function RootLayout() {
             if (__DEV__)
                 DevClient.registerDevMenuItems([
                     {
-                        "name": "Reset Settings",
+                        "name": "Sitemap",
                         "callback": () => router.push("/_sitemap"),
                         "shouldCollapse": true
                     }
