@@ -1,7 +1,8 @@
-import { ReactNode, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS } from "../../../app.config";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Haptics from 'expo-haptics';
 
 import SvgHome from "@/assets/svg/tabbar/home.svg";
 import SvgCalendar from "@/assets/svg/tabbar/calendar.svg";
@@ -9,12 +10,64 @@ import SvgSiren from "@/assets/svg/tabbar/siren.svg";
 import SvgMessageBox from "@/assets/svg/tabbar/messageBox.svg";
 import SvgUser from "@/assets/svg/tabbar/user.svg";
 
+import Community from "./Community";
+
 type Screens = "home" | "walk" | "emergency" | "community" | "my";
+
+const svgs = {
+    "home": SvgHome,
+    "walk": SvgCalendar,
+    "emergency": SvgSiren,
+    "community": SvgMessageBox,
+    "my": SvgUser
+};
+
+const names = {
+    "home": "홈",
+    "walk": "산책",
+    "emergency": "긴급",
+    "community": "커뮤니티",
+    "my": "마이"
+};
+
+function TabBarItem({
+    currentScreen,
+    screen,
+    styles,
+    setScreen
+}: {
+    currentScreen: Screens,
+    screen: Screens,
+    styles: Record<string, any>,
+    setScreen: React.Dispatch<React.SetStateAction<Screens>>
+}) {
+    const CurrentSvg = svgs[screen];
+
+    return <TouchableOpacity
+        hitSlop={15}
+        style={styles.tabbarItem}
+        onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            setScreen(screen);
+        }}
+    >
+        <CurrentSvg
+            width={30}
+            height={30}
+            color={currentScreen === screen ? COLORS.green_light2 : "#6e6e6e"}
+        />
+        <Text
+            style={[styles.tabbarItemText, { "color": currentScreen === screen ? COLORS.green_light2 : "#6e6e6e" }]}
+        >{names[screen]}</Text>
+    </TouchableOpacity>;
+}
 
 export default function RootLayout() {
     const [screen, setScreen] = useState<Screens>("home");
     const safeArea = useSafeAreaInsets();
     const styles = getStyles(safeArea);
+
+    useEffect(() => { console.log(screen) }, [screen]);
 
     return <View style={styles.container}>
         {(() => {
@@ -22,32 +75,17 @@ export default function RootLayout() {
                 case "home": return;
                 case "walk": return;
                 case "emergency": return;
-                case "community": return;
+                case "community": return <Community />;
                 case "my": return;
             }
         })()}
         <View style={[styles.tabbar, { "paddingBottom": safeArea.bottom }]}>
             <View style={styles.tabbarItems}>
-                <TouchableOpacity hitSlop={15} style={styles.tabbarItem} onPress={() => setScreen("home")}>
-                    <SvgHome width={30} height={30} color={screen === "home" ? COLORS.green_light2 : "#6e6e6e"} />
-                    <Text style={[styles.tabbarItemText, { "color": screen === "home" ? COLORS.green_light2 : "#6e6e6e" }]}>홈</Text>
-                </TouchableOpacity>
-                <TouchableOpacity hitSlop={15} style={styles.tabbarItem} onPress={() => setScreen("walk")}>
-                    <SvgCalendar width={30} height={30} color={screen === "walk" ? COLORS.green_light2 : "#6e6e6e"} />
-                    <Text style={[styles.tabbarItemText, { "color": screen === "walk" ? COLORS.green_light2 : "#6e6e6e" }]}>산책</Text>
-                </TouchableOpacity>
-                <TouchableOpacity hitSlop={15} style={styles.tabbarItem} onPress={() => setScreen("emergency")}>
-                    <SvgSiren width={30} height={30} color={screen === "emergency" ? COLORS.green_light2 : "#6e6e6e"} />
-                    <Text style={[styles.tabbarItemText, { "color": screen === "emergency" ? COLORS.green_light2 : "#6e6e6e" }]}>긴급</Text>
-                </TouchableOpacity>
-                <TouchableOpacity hitSlop={15} style={styles.tabbarItem} onPress={() => setScreen("community")}>
-                    <SvgMessageBox width={30} height={30} color={screen === "community" ? COLORS.green_light2 : "#6e6e6e"} />
-                    <Text style={[styles.tabbarItemText, { "color": screen === "community" ? COLORS.green_light2 : "#6e6e6e" }]}>커뮤니티</Text>
-                </TouchableOpacity>
-                <TouchableOpacity hitSlop={15} style={styles.tabbarItem} onPress={() => setScreen("my")}>
-                    <SvgUser width={30} height={30} color={screen === "my" ? COLORS.green_light2 : "#6e6e6e"} />
-                    <Text style={[styles.tabbarItemText, { "color": screen === "my" ? COLORS.green_light2 : "#6e6e6e" }]}>마이</Text>
-                </TouchableOpacity>
+                <TabBarItem setScreen={setScreen} currentScreen={screen} styles={styles} screen={"home"} />
+                <TabBarItem setScreen={setScreen} currentScreen={screen} styles={styles} screen={"walk"} />
+                <TabBarItem setScreen={setScreen} currentScreen={screen} styles={styles} screen={"emergency"} />
+                <TabBarItem setScreen={setScreen} currentScreen={screen} styles={styles} screen={"community"} />
+                <TabBarItem setScreen={setScreen} currentScreen={screen} styles={styles} screen={"my"} />
             </View>
         </View>
     </View>;

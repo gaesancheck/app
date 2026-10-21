@@ -33,7 +33,9 @@ export default function RootLayout() {
 
     return <Stack
         screenOptions={{
-            "header": () => null
+            "header": () => null,
+            "animation": "fade",
+            "animationDuration": 250
         }}
     />;
 }
