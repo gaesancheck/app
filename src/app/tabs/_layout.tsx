@@ -67,8 +67,6 @@ export default function RootLayout() {
     const safeArea = useSafeAreaInsets();
     const styles = getStyles(safeArea);
 
-    useEffect(() => { console.log(screen) }, [screen]);
-
     return <View style={styles.container}>
         {(() => {
             switch (screen) {
