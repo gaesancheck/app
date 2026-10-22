@@ -1,6 +1,8 @@
-import { FlatList, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
 import * as Haptics from 'expo-haptics';
+import { COLORS } from "../../../app.config";
+import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import SvgSearch from '@/assets/svg/search.svg';
 import SvgList from '@/assets/svg/list.svg';
@@ -9,7 +11,7 @@ import SvgComment from '@/assets/svg/comment.svg';
 import SvgBookmark from '@/assets/svg/bookmark.svg';
 import SvgBookmarkFilled from '@/assets/svg/bookmark_filled.svg';
 import SvgPlus from '@/assets/svg/plus.svg';
-import { COLORS } from "../../../../app.config";
+import TabBar from "@/components/TabBar";
 
 type Posts = {
     "id": string,
@@ -27,13 +29,15 @@ type Posts = {
 function Category({
     enabled,
     label,
-    onPress
+    onPress,
+    styles
 }: {
     enabled: boolean,
     label: string,
-    onPress?: () => void
+    onPress?: () => void,
+    styles: any
 }) {
-    return <TouchableOpacity style={[styles.category, {
+    return <TouchableOpacity style={[styles, {
         "backgroundColor": enabled ? "#474747" : "#E2E2E2"
     }]} onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -48,6 +52,9 @@ function Category({
 }
 
 export default function Page() {
+    const safeArea = useSafeAreaInsets();
+    const styles = getStyles(safeArea);
+
     const posts: Posts[] = [
         {
             "id": "1",
@@ -201,9 +208,9 @@ export default function Page() {
             </View>
         </View>
         <View style={styles.categories}>
-            <Category onPress={() => setCurrentCategory("popular")} enabled={currentCategory === "popular"} label="인기" />
-            <Category onPress={() => setCurrentCategory("recent")} enabled={currentCategory === "recent"} label="최근" />
-            <Category onPress={() => setCurrentCategory("others")} enabled={currentCategory === "others"} label="그 외 등등" />
+            <Category styles={styles.category} onPress={() => setCurrentCategory("popular")} enabled={currentCategory === "popular"} label="인기" />
+            <Category styles={styles.category} onPress={() => setCurrentCategory("recent")} enabled={currentCategory === "recent"} label="최근" />
+            <Category styles={styles.category} onPress={() => setCurrentCategory("others")} enabled={currentCategory === "others"} label="그 외 등등" />
         </View>
         <FlatList
             style={styles.list}
@@ -239,16 +246,26 @@ export default function Page() {
                 </View>
             </View>}
         />
-        <Pressable style={styles.writePost}>
+        <Pressable style={styles.writePost} onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+        }}>
             <SvgPlus width={15} height={15} />
         </Pressable>
+        <TabBar />
     </View>;
 }
 
-const styles = StyleSheet.create({
+const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
     "container": {
         "flex": 1,
-        "flexDirection": "column"
+        "flexDirection": "column",
+        "backgroundColor": COLORS.background,
+        "width": "100%",
+        "paddingTop": Platform.select({ "android": safeArea.top + 14, "ios": 76 }),
+        "paddingBottom": 75,
+        "paddingLeft": safeArea.left,
+        "paddingRight": safeArea.right
     },
     "header": {
         "flexDirection": "row",
@@ -267,7 +284,7 @@ const styles = StyleSheet.create({
     },
     "writePost": {
         "position": "absolute",
-        "bottom": 19,
+        "bottom": 19 + 75, // margin + tabbar
         "right": 19,
         "borderRadius": 20,
         "width": 40,
