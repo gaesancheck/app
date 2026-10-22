@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { COLORS } from "../../../app.config";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from 'expo-haptics';
@@ -10,7 +10,7 @@ import SvgSiren from "@/assets/svg/tabbar/siren.svg";
 import SvgMessageBox from "@/assets/svg/tabbar/messageBox.svg";
 import SvgUser from "@/assets/svg/tabbar/user.svg";
 
-import Community from "./Community";
+import Community from "./community";
 
 type Screens = "home" | "walk" | "emergency" | "community" | "my";
 
@@ -94,8 +94,8 @@ const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
         "flex": 1,
         "backgroundColor": COLORS.background,
         "width": "100%",
-        "paddingTop": safeArea.top,
-        "paddingBottom": 75 + safeArea.bottom,
+        "paddingTop": Platform.select({ "android": safeArea.top + 14, "ios": 76 }),
+        "paddingBottom": 75,
         "paddingLeft": safeArea.left,
         "paddingRight": safeArea.right
     },
@@ -104,17 +104,16 @@ const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
         "bottom": 0,
         "left": 0,
         "right": 0,
-        "height": 75 + safeArea.bottom,
+        "height": 75,
         "width": "100%",
         "borderColor": "#9CA3AF",
         "borderWidth": 0.3,
         "borderStyle": "solid",
         "borderTopLeftRadius": 15,
-        "borderTopRightRadius": 15,
-        "paddingBottom": safeArea.bottom
+        "borderTopRightRadius": 15
     },
     "tabbarItems": {
-        "marginHorizontal": 36,
+        "marginHorizontal": "auto",
         "paddingVertical": 15,
         "flexDirection": "row",
         "gap": 40,
