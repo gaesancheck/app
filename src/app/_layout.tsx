@@ -1,5 +1,5 @@
-import { router, Stack } from "expo-router";
-import { useEffect } from "react";
+import { router, Stack, usePathname } from "expo-router";
+import { useEffect, useState } from "react";
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import * as DevClient from 'expo-dev-client';
@@ -7,6 +7,15 @@ import * as DevClient from 'expo-dev-client';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+    const [fontsLoaded, setFontsLoaded] = useState(false);
+    const pathname = usePathname();
+
+    useEffect(() => {
+        if (fontsLoaded && pathname === "/") {
+            router.replace("/home");
+        }
+    }, [fontsLoaded, pathname]);
+
     useEffect(() => {
         (async () => {
             if (__DEV__)
@@ -27,6 +36,7 @@ export default function RootLayout() {
                 "ParkDaHyeon": require("@/assets/fonts/ParkDaHyeon.ttf"), // 온글잎 박다현체
             });
 
+            setFontsLoaded(true);
             await SplashScreen.hideAsync();
         })();
     }, []);

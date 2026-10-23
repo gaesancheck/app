@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from 'expo-haptics';
 import { COLORS } from "../../app.config";
 
@@ -9,6 +8,7 @@ import SvgCalendar from "@/assets/svg/tabbar/calendar.svg";
 import SvgSiren from "@/assets/svg/tabbar/siren.svg";
 import SvgMessageBox from "@/assets/svg/tabbar/messageBox.svg";
 import SvgUser from "@/assets/svg/tabbar/user.svg";
+import { Tabs } from "expo-router";
 
 const names = {
     "home": ["홈", SvgHome] as const,
@@ -18,60 +18,50 @@ const names = {
     "mypage": ["마이", SvgUser] as const,
 };
 
-type Screens = keyof typeof names;
+export type Screens = keyof typeof names;
 
-function TabBarItem({
-    selected,
-    screen,
-    setScreen
-}: {
-    selected: boolean,
-    screen: Screens,
-    setScreen: React.Dispatch<React.SetStateAction<Screens>>
-}) {
-    const CurrentSvg = names[screen][1];
+type TabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>["tabBar"]>>[0];
 
-    return <TouchableOpacity
-        hitSlop={15}
-        style={styles.tabbarItem}
-        onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            setScreen(screen);
-        }}
-    >
-        <CurrentSvg
-            width={30}
-            height={30}
-            color={selected ? COLORS.green_light2 : "#6e6e6e"}
-        />
-        <Text
-            style={[styles.tabbarItemText, { "color": selected ? COLORS.green_light2 : "#6e6e6e" }]}
-        >{names[screen][0]}</Text>
-    </TouchableOpacity>;
-}
-
-export default function TabBar() {
-    const [screen, setScreen] = useState<Screens>("home");
-    const safeArea = useSafeAreaInsets();
-
-    return <View style={[styles.tabbar, { "paddingBottom": safeArea.bottom }]}>
+export default function TabBar({ state, emitter, navigateToTab, insets }: TabBarProps) {
+    return <View style={[styles.tabbar, { paddingBottom: insets.bottom, height: 60 + insets.bottom }]}>
         <View style={styles.tabbarItems}>
-            <TabBarItem setScreen={setScreen} selected={screen.includes("home")} screen={"home"} />
-            <TabBarItem setScreen={setScreen} selected={screen.includes("walk")} screen={"walk"} />
-            <TabBarItem setScreen={setScreen} selected={screen.includes("emergency")} screen={"emergency"} />
-            <TabBarItem setScreen={setScreen} selected={screen.includes("community")} screen={"community"} />
-            <TabBarItem setScreen={setScreen} selected={screen.includes("mypage")} screen={"mypage"} />
+            {state.routes.map((route, index) => {
+                if (!(route.name in names)) return null;
+                const [label, Icon] = names[route.name as Screens];
+                const selected = state.index === index;
+                const color = selected ? COLORS.green_light2 : "#6e6e6e";
+
+                return <TouchableOpacity
+                    key={route.key}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={label}
+                    hitSlop={15}
+                    style={styles.tabbarItem}
+                    onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        const event = emitter.emit({
+                            type: "tabPress",
+                            target: route.key,
+                            canPreventDefault: true
+                        });
+                        if (!selected && !event.defaultPrevented) {
+                            navigateToTab(route.key);
+                        }
+                    }}
+                    onLongPress={() => emitter.emit({ type: "tabLongPress", target: route.key })}
+                >
+                    <Icon width={30} height={30} color={color} />
+                    <Text style={[styles.tabbarItemText, { color }]}>{label}</Text>
+                </TouchableOpacity>;
+            })}
         </View>
     </View>;
 }
 
 const styles = StyleSheet.create({
     "tabbar": {
-        "position": "absolute",
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "height": 75,
+        "backgroundColor": COLORS.background,
         "width": "100%",
         "borderColor": "#9CA3AF",
         "borderWidth": 0.3,

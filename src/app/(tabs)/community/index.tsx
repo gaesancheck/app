@@ -1,7 +1,8 @@
+import { router } from "expo-router";
 import { FlatList, Image, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
 import * as Haptics from 'expo-haptics';
-import { COLORS } from "../../../app.config";
+import { COLORS } from "../../../../app.config";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import SvgSearch from '@/assets/svg/search.svg';
@@ -11,7 +12,6 @@ import SvgComment from '@/assets/svg/comment.svg';
 import SvgBookmark from '@/assets/svg/bookmark.svg';
 import SvgBookmarkFilled from '@/assets/svg/bookmark_filled.svg';
 import SvgPlus from '@/assets/svg/plus.svg';
-import TabBar from "@/components/TabBar";
 
 type Posts = {
     "id": string,
@@ -199,10 +199,10 @@ export default function Page() {
         <View style={styles.header}>
             <Text style={styles.headerText}>커뮤니티</Text>
             <View style={styles.headerItems}>
-                <TouchableOpacity>
+                <TouchableOpacity hitSlop={7}>
                     <SvgSearch width={15} height={15} />
                 </TouchableOpacity>
-                <TouchableOpacity>
+                <TouchableOpacity hitSlop={7}>
                     <SvgList width={15} height={15} />
                 </TouchableOpacity>
             </View>
@@ -240,7 +240,7 @@ export default function Page() {
                         <SvgComment style={styles.postStatusIcon} />
                         <Text style={styles.postStatusText}>{item.comments}</Text>
                     </View>
-                    <TouchableOpacity style={styles.bookmark}>
+                    <TouchableOpacity style={styles.bookmark} hitSlop={7}>
                         {item.bookmarked ? <SvgBookmarkFilled /> : <SvgBookmark />}
                     </TouchableOpacity>
                 </View>
@@ -248,11 +248,10 @@ export default function Page() {
         />
         <Pressable style={styles.writePost} onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
+            router.push("/community/write");
         }}>
             <SvgPlus width={15} height={15} />
         </Pressable>
-        <TabBar />
     </View>;
 }
 
@@ -263,7 +262,6 @@ const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
         "backgroundColor": COLORS.background,
         "width": "100%",
         "paddingTop": Platform.select({ "android": safeArea.top + 14, "ios": 76 }),
-        "paddingBottom": 75,
         "paddingLeft": safeArea.left,
         "paddingRight": safeArea.right
     },
@@ -284,7 +282,7 @@ const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
     },
     "writePost": {
         "position": "absolute",
-        "bottom": 19 + 75, // margin + tabbar
+        "bottom": 19,
         "right": 19,
         "borderRadius": 20,
         "width": 40,
