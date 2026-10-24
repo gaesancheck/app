@@ -2,13 +2,14 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { COLORS } from "../../app.config";
+import { Tabs } from "expo-router";
 
 import SvgHome from "@/assets/svg/tabbar/home.svg";
+import SvgSelectedHome from "@/assets/svg/tabbar/selectedHome.svg";
 import SvgCalendar from "@/assets/svg/tabbar/calendar.svg";
 import SvgSiren from "@/assets/svg/tabbar/siren.svg";
 import SvgMessageBox from "@/assets/svg/tabbar/messageBox.svg";
 import SvgUser from "@/assets/svg/tabbar/user.svg";
-import { Tabs } from "expo-router";
 
 const names = {
     "home": ["홈", SvgHome] as const,
@@ -51,7 +52,7 @@ export default function TabBar({ state, emitter, navigateToTab, insets }: TabBar
                     }}
                     onLongPress={() => emitter.emit({ type: "tabLongPress", target: route.key })}
                 >
-                    <Icon width={30} height={30} color={color} />
+                    {selected && route.name === "home" ? <SvgSelectedHome width={30} height={30} color={color} /> : <Icon width={30} height={30} color={color} />}
                     <Text style={[styles.tabbarItemText, { color }]}>{label}</Text>
                 </TouchableOpacity>;
             })}
