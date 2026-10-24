@@ -6,7 +6,7 @@ import * as DevClient from 'expo-dev-client';
 
 SplashScreen.preventAutoHideAsync();
 
-export const unstable_settings = { initialRouteName: "index" };
+export const unstable_settings = { "anchor": "index" };
 
 export default function RootLayout() {
     const [fontsLoaded, setFontsLoaded] = useState(false);

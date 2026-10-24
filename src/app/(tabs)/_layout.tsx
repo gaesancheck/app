@@ -1,14 +1,17 @@
 import { Tabs } from "expo-router";
 import TabBar from "@/components/TabBar";
-import { COLORS } from "../../../app.config";
+import { LightColors, DarkColors } from "../../../app.config";
+import useChooseByScheme from "@/modules/useChooseByScheme";
 
 export const unstable_settings = { "anchor": "index" };
 
 export default function TabLayout() {
+    const colors = useChooseByScheme(LightColors, DarkColors);
+
     return <Tabs
         backBehavior="history"
         tabBar={(props) => <TabBar {...props} />}
-        screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: COLORS.background } }}
+        screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.background } }}
     >
         <Tabs.Screen name="index" options={{ title: "홈" }} />
         <Tabs.Screen name="walk" options={{ title: "산책" }} />
