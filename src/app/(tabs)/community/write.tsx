@@ -1,4 +1,4 @@
-import { Alert, Dimensions, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Dimensions, Image, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../../../../app.config";
 import { useState } from "react";
@@ -22,6 +22,22 @@ export default function Page() {
         setIsUploading(true);
     };
 
+    const selectPhotos = async () => {
+        const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!perm.granted) {
+            // 임시
+            Alert.alert("사진 권한", "설정에서 사진 권한을 허용해주세요.");
+            return;
+        }
+
+        const images = await ImagePicker.launchImageLibraryAsync({
+            "allowsMultipleSelection": true
+        });
+        if (!images.assets) return;
+
+        setPictures(v => [...v, ...images.assets]);
+    };
+
     return <View style={styles.container}>
         <View style={styles.header}>
             <TouchableOpacity style={styles.headerBack} hitSlop={7} onPress={() => {
@@ -35,58 +51,63 @@ export default function Page() {
         <View style={styles.form}>
             <View style={styles.section}>
                 <Text style={styles.sectionText}>제목</Text>
-                <TextInput
-                    style={[
-                        styles.sectionTextInput,
-                        {
-                            "fontFamily": title.length > 0 ? "NanumSquareNeo-Regular" : "ParkDaHyeon",
-                            "fontSize": title.length > 0 ? 16 : 18
-                        }
-                    ]}
-                    placeholder="제목을 입력해주세요"
-                    placeholderTextColor={"#9CA3AF"}
-                    value={title}
-                    onChangeText={(v) => setTitle(v)}
-                />
+                <View>
+                    <TextInput
+                        style={styles.sectionTextInput}
+                        accessibilityLabel="제목"
+                        value={title}
+                        onChangeText={(v) => setTitle(v)}
+                    />
+                    {title.length === 0 && <Text
+                        style={styles.inputPlaceholder}
+                        pointerEvents="none"
+                        accessible={false}
+                    >제목을 입력해주세요</Text>}
+                </View>
             </View>
             <View style={styles.section}>
                 <Text style={styles.sectionText}>내용</Text>
-                <TextInput
-                    style={[
-                        styles.sectionTextInput, { "height": 155 },
-                        {
-                            "fontFamily": content.length > 0 ? "NanumSquareNeo-Regular" : "ParkDaHyeon",
-                            "fontSize": content.length > 0 ? 16 : 18
-                        }
-                    ]}
-                    placeholder="내용을 입력해주세요"
-                    placeholderTextColor={"#9CA3AF"}
-                    multiline
-                    value={content}
-                    onChangeText={(v) => setContent(v)}
-                />
+                <View>
+                    <TextInput
+                        style={[styles.sectionTextInput, styles.contentInput]}
+                        accessibilityLabel="내용"
+                        multiline
+                        value={content}
+                        onChangeText={(v) => setContent(v)}
+                    />
+                    {content.length === 0 && <Text
+                        style={styles.inputPlaceholder}
+                        pointerEvents="none"
+                        accessible={false}
+                    >내용을 입력해주세요</Text>}
+                </View>
             </View>
-            {pictures.length > 0 ? <View>
-            </View> : <Pressable style={styles.section} onPress={async () => {
-                const document = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                if (!document.granted) {
-                    // 임시
-                    Alert.alert("사진 권한", "설정에서 사진 권한을 허용해주세요.");
-                    return;
-                }
-
-
-            }}>
+            <View style={styles.section}>
                 <Text style={styles.sectionText}>사진 첨부</Text>
-                <View style={styles.noPicture}>
+                {pictures.length > 0 ? <View style={styles.pictures}>
+                    {pictures.map(v => <Pressable key={v.assetId} onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setPictures(a => a.filter(b => b.assetId !== v.assetId));
+                    }}>
+                        <Image
+                            style={styles.picture}
+                            source={{ "uri": v.uri }}
+                            width={85}
+                            height={85}
+                        />
+                    </Pressable>)}
+                    <Pressable style={styles.addMorePicture} onPress={selectPhotos}>
+                        <SvgCamera width={32} height={29} />
+                    </Pressable>
+                </View> : <Pressable style={styles.noPicture} onPress={selectPhotos}>
                     <SvgCamera width={47} height={38} />
                     <Text style={styles.noPictureText}>사진을 선택해 주세요</Text>
-                </View>
-            </Pressable>}
-            <Pressable style={[styles.upload, { "opacity": isUploading ? 0.5 : 1 }]} onPress={uploadPost}>
-                <Text style={styles.uploadText}>게시물 올리기</Text>
-            </Pressable>
+                </Pressable>}
+            </View>
         </View>
+        <Pressable style={[styles.upload, { "opacity": isUploading ? 0.5 : 1 }]} onPress={uploadPost}>
+            <Text style={styles.uploadText}>게시물 올리기</Text>
+        </Pressable>
     </View>;
 }
 
@@ -133,6 +154,8 @@ const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
         "fontSize": 18
     },
     "sectionTextInput": {
+        "fontFamily": "NanumSquareNeo-Regular",
+        "fontSize": 16,
         "paddingHorizontal": 18,
         "paddingVertical": 16,
         "borderColor": "#E5E7EB",
@@ -141,6 +164,19 @@ const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
         "backgroundColor": "#FFFFFF",
         "borderRadius": 8,
         "color": "#525252",
+        "textAlignVertical": "top"
+    },
+    "contentInput": {
+        "height": 155
+    },
+    "inputPlaceholder": {
+        "position": "absolute",
+        "top": 17,
+        "left": 19,
+        "right": 19,
+        "fontFamily": "ParkDaHyeon",
+        "fontSize": 18,
+        "color": "#9CA3AF"
     },
     "noPicture": {
         "borderRadius": 10,
@@ -160,10 +196,12 @@ const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
         "color": "#6E6E6E"
     },
     "upload": {
-        "width": "100%",
+        "position": "absolute",
+        "bottom": 28,
+        "left": safeArea.left + 19,
+        "right": safeArea.right + 19,
         "backgroundColor": COLORS.green_light2,
         "height": 55,
-        "marginTop": 55,
         "justifyContent": "center",
         "alignItems": "center",
         "borderRadius": 10
@@ -172,5 +210,23 @@ const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
         "fontFamily": "ParkDaHyeon",
         "color": "#fff",
         "fontSize": 25
+    },
+    "pictures": {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 7
+    },
+    "picture": {
+        "borderRadius": 10
+    },
+    "addMorePicture": {
+        "borderRadius": 10,
+        "borderWidth": 2,
+        "borderStyle": "dashed",
+        "borderColor": "#9CA3AF",
+        "width": 85,
+        "height": 85,
+        "justifyContent": "center",
+        "alignItems": "center"
     }
 });

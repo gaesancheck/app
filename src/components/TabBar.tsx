@@ -74,8 +74,7 @@ const styles = StyleSheet.create({
         "marginHorizontal": "auto",
         "paddingVertical": 15,
         "flexDirection": "row",
-        "gap": 40,
-        "width": 322
+        "gap": 40
     },
     "tabbarItem": {
         "gap": 3.5,
@@ -83,7 +82,7 @@ const styles = StyleSheet.create({
         "alignItems": "center"
     },
     "tabbarItemText": {
-        "maxWidth": 42,
+        "maxWidth": 45,
         "fontFamily": "NanumSquareNeo-Regular",
         "fontSize": 11,
     }
