@@ -52,7 +52,21 @@ const config: ExpoConfig = {
         "expo-dev-client",
         "expo-secure-store",
         "expo-image",
-        "expo-web-browser"
+        "expo-web-browser",
+        [
+            "expo-image-picker",
+            {
+                "photosPermission": "일기에 사진 첨부 등의 기능을 이용하려면 사진 접근 권한이 필요해요.",
+                "colors": {
+                    "cropToolbarColor": "#000000"
+                },
+                "dark": {
+                    "colors": {
+                        "cropToolbarColor": "#000000"
+                    }
+                }
+            }
+        ]
     ],
     "experiments": {
         "typedRoutes": true,

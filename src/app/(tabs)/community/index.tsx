@@ -240,14 +240,17 @@ export default function Page() {
                         <SvgComment style={styles.postStatusIcon} />
                         <Text style={styles.postStatusText}>{item.comments}</Text>
                     </View>
-                    <TouchableOpacity style={styles.bookmark} hitSlop={7}>
+                    <TouchableOpacity style={styles.bookmark} hitSlop={7} onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+                        // bookmark
+                    }}>
                         {item.bookmarked ? <SvgBookmarkFilled /> : <SvgBookmark />}
                     </TouchableOpacity>
                 </View>
             </View>}
         />
         <Pressable style={styles.writePost} onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.push("/community/write");
         }}>
             <SvgPlus width={15} height={15} />
