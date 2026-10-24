@@ -1,0 +1,12 @@
+diff --git a/apple/Package.swift b/apple/Package.swift
+--- a/apple/Package.swift
++++ b/apple/Package.swift
+@@ -28,6 +28,8 @@ let headerSearchPaths = [
+   publicHeaders,
+   "\(publicHeaders)/React-jsi",
+   "\(publicHeaders)/hermes-engine",
++  // CocoaPods may not mirror prebuilt Hermes headers into Headers/Public.
++  "\(podsRoot)/hermes-engine/destroot/include",
+   "\(publicHeaders)/React-runtimescheduler",
+   "\(publicHeaders)/React-rendererconsistency",
+   "\(publicHeaders)/React-performancetimeline",
