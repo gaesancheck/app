@@ -1,4 +1,4 @@
-import { router, Stack, usePathname } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
@@ -6,15 +6,10 @@ import * as DevClient from 'expo-dev-client';
 
 SplashScreen.preventAutoHideAsync();
 
+export const unstable_settings = { initialRouteName: "index" };
+
 export default function RootLayout() {
     const [fontsLoaded, setFontsLoaded] = useState(false);
-    const pathname = usePathname();
-
-    useEffect(() => {
-        if (fontsLoaded && pathname === "/") {
-            router.replace("/home");
-        }
-    }, [fontsLoaded, pathname]);
 
     useEffect(() => {
         (async () => {
@@ -40,6 +35,8 @@ export default function RootLayout() {
             await SplashScreen.hideAsync();
         })();
     }, []);
+
+    if (!fontsLoaded) return null;
 
     return <Stack
         screenOptions={{

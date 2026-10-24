@@ -39,7 +39,7 @@ function Category({
 }) {
     return <TouchableOpacity style={[styles, {
         "backgroundColor": enabled ? "#474747" : "#E2E2E2"
-    }]} onPress={() => {
+    }]} disabled={enabled} onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress?.();
     }}>

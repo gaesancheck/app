@@ -73,6 +73,13 @@ const config: ExpoConfig = {
                     }
                 }
             }
+        ],
+        [
+            "expo-secure-store",
+            {
+                "configureAndroidBackup": false,
+                "faceIDPermission": "민감한 데이터를 저장하기 위해 생체 데이터를 사용해요."
+            }
         ]
     ],
     "experiments": {

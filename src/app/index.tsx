@@ -2,9 +2,33 @@ import { View, StyleSheet, Dimensions, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "../../app.config";
 import Footstep from "@/assets/svg/balzaguk.svg";
+import { useEffect } from "react";
+import { router } from "expo-router";
+import session from "@/modules/session";
 
 export default function Loading() {
     const safeArea = useSafeAreaInsets();
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const restoreSession = async () => {
+            let loggedIn = false;
+            try {
+                const savedSession = await session.get();
+                loggedIn = savedSession?.userData.loggedIn === true;
+            } catch {
+                // A session that cannot be read requires signing in again.
+            }
+
+            if (!cancelled) {
+                router.replace(loggedIn ? "/(tabs)" : "/login");
+            }
+        };
+
+        void restoreSession();
+        return () => { cancelled = true; };
+    }, []);
 
     return <View
         style={[styles.container, {
