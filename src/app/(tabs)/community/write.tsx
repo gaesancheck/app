@@ -1,17 +1,19 @@
 import { Alert, Dimensions, Image, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../../../../app.config";
+import { LightColors, DarkColors, Colors } from "../../../../app.config";
 import { useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { router } from "expo-router";
 import * as ImagePicker from 'expo-image-picker';
+import useChooseByScheme from "@/modules/useChooseByScheme";
 
 import SvgBack from '@/assets/svg/back.svg';
 import SvgCamera from '@/assets/svg/camera.svg';
 
 export default function Page() {
     const safeArea = useSafeAreaInsets();
-    const styles = getStyles(safeArea);
+    const colors = useChooseByScheme(LightColors, DarkColors);
+    const styles = getStyles(colors, safeArea);
 
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
@@ -111,11 +113,11 @@ export default function Page() {
     </View>;
 }
 
-const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
+const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     "container": {
         "flex": 1,
         "flexDirection": "column",
-        "backgroundColor": COLORS.background,
+        "backgroundColor": colors.background,
         "width": "100%",
         "paddingTop": Platform.select({ "android": safeArea.top + 14, "ios": 76 }),
         "paddingLeft": safeArea.left,
@@ -200,7 +202,7 @@ const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
         "bottom": 28,
         "left": safeArea.left + 19,
         "right": safeArea.right + 19,
-        "backgroundColor": COLORS.green_light2,
+        "backgroundColor": colors.green_light2,
         "height": 55,
         "justifyContent": "center",
         "alignItems": "center",

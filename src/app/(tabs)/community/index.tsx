@@ -2,8 +2,9 @@ import { router } from "expo-router";
 import { FlatList, Image, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
 import * as Haptics from 'expo-haptics';
-import { COLORS } from "../../../../app.config";
+import { Colors, LightColors, DarkColors } from "../../../../app.config";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
+import useChooseByScheme from "@/modules/useChooseByScheme";
 
 import SvgSearch from '@/assets/svg/search.svg';
 import SvgList from '@/assets/svg/list.svg';
@@ -53,7 +54,8 @@ function Category({
 
 export default function Page() {
     const safeArea = useSafeAreaInsets();
-    const styles = getStyles(safeArea);
+    const colors = useChooseByScheme(LightColors, DarkColors);
+    const styles = getStyles(colors, safeArea);
 
     const posts: Posts[] = [
         {
@@ -258,11 +260,11 @@ export default function Page() {
     </View>;
 }
 
-const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
+const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     "container": {
         "flex": 1,
         "flexDirection": "column",
-        "backgroundColor": COLORS.background,
+        "backgroundColor": colors.background,
         "width": "100%",
         "paddingTop": Platform.select({ "android": safeArea.top + 14, "ios": 76 }),
         "paddingLeft": safeArea.left,
@@ -290,7 +292,7 @@ const getStyles = (safeArea: EdgeInsets) => StyleSheet.create({
         "borderRadius": 20,
         "width": 40,
         "height": 40,
-        "backgroundColor": COLORS.green_light2,
+        "backgroundColor": colors.green_light2,
         "justifyContent": "center",
         "alignItems": "center",
         "boxShadow": "rgba(0, 0, 0, 0.25) 0 3px 3px 0"

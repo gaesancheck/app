@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { COLORS } from "../../app.config";
+import { Colors, DarkColors, LightColors } from "../../app.config";
 import { Tabs } from "expo-router";
 
 import SvgHome from "@/assets/svg/tabbar/home.svg";
@@ -10,6 +10,7 @@ import SvgCalendar from "@/assets/svg/tabbar/calendar.svg";
 import SvgSiren from "@/assets/svg/tabbar/siren.svg";
 import SvgMessageBox from "@/assets/svg/tabbar/messageBox.svg";
 import SvgUser from "@/assets/svg/tabbar/user.svg";
+import useChooseByScheme from "@/modules/useChooseByScheme";
 
 const names = {
     "index": ["홈", SvgHome] as const,
@@ -24,13 +25,16 @@ export type Screens = keyof typeof names;
 type TabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>["tabBar"]>>[0];
 
 export default function TabBar({ state, emitter, navigateToTab, insets }: TabBarProps) {
+    const colors = useChooseByScheme(LightColors, DarkColors);
+    const styles = getStyles(colors);
+    
     return <View style={[styles.tabbar, { paddingBottom: insets.bottom, height: 60 + insets.bottom }]}>
         <View style={styles.tabbarItems}>
             {state.routes.map((route, index) => {
                 if (!(route.name in names)) return null;
                 const [label, Icon] = names[route.name as Screens];
                 const selected = state.index === index;
-                const color = selected ? COLORS.green_light2 : "#6e6e6e";
+                const color = selected ? colors.green_light2 : "#6e6e6e";
 
                 return <TouchableOpacity
                     key={route.key}
@@ -60,9 +64,9 @@ export default function TabBar({ state, emitter, navigateToTab, insets }: TabBar
     </View>;
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: Colors) => StyleSheet.create({
     "tabbar": {
-        "backgroundColor": COLORS.background,
+        "backgroundColor": colors.background,
         "width": "100%",
         "borderColor": "#9CA3AF",
         "borderWidth": 0.3,

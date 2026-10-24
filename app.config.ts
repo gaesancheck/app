@@ -1,6 +1,19 @@
 import { ExpoConfig } from '@expo/config';
 
-export const COLORS = {
+export type Colors = typeof LightColors | typeof DarkColors;
+
+export const LightColors = {
+    "green_light1": "#aabb8d",
+    "green_light2": "#688f6e",
+    "green_dark1": "#2f6439",
+    "green_dark2": "#2a5032",
+    "white": "#eaf0e6",
+    "white2": "#faead7",
+    "yellow": "#edd693",
+    "background": "#F7F7F2",
+};
+
+export const DarkColors = {
     "green_light1": "#aabb8d",
     "green_light2": "#688f6e",
     "green_dark1": "#2f6439",

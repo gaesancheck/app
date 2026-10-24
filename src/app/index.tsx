@@ -1,33 +1,18 @@
 import { View, StyleSheet, Dimensions, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../../app.config";
+import { Colors, DarkColors, LightColors } from "../../app.config";
 import Footstep from "@/assets/svg/balzaguk.svg";
 import { useEffect } from "react";
 import { router } from "expo-router";
-import session from "@/modules/session";
+import useChooseByScheme from "@/modules/useChooseByScheme";
 
 export default function Loading() {
     const safeArea = useSafeAreaInsets();
+    const colors = useChooseByScheme(LightColors, DarkColors);
+    const styles = getStyles(colors);
 
     useEffect(() => {
-        let cancelled = false;
-
-        const restoreSession = async () => {
-            let loggedIn = false;
-            try {
-                const savedSession = await session.get();
-                loggedIn = savedSession?.userData.loggedIn === true;
-            } catch {
-                // A session that cannot be read requires signing in again.
-            }
-
-            if (!cancelled) {
-                router.replace(loggedIn ? "/(tabs)" : "/login");
-            }
-        };
-
-        void restoreSession();
-        return () => { cancelled = true; };
+        router.replace("/(tabs)");
     }, []);
 
     return <View
@@ -79,9 +64,9 @@ export default function Loading() {
     </View>;
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: Colors) => StyleSheet.create({
     "container": {
-        "backgroundColor": COLORS.background,
+        "backgroundColor": colors.background,
         "height": Dimensions.get("window").height,
         "flexDirection": "column",
         "alignItems": "center",
