@@ -18,6 +18,9 @@ const config: ExpoConfig = {
     "orientation": "portrait",
     "icon": "./assets/images/android-icon.png",
     "scheme": "pawstep",
+    "extra": {
+        "kakaoNativeAppKey": process.env.NATIVE_APP_KEY ?? process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY ?? ""
+    },
     "userInterfaceStyle": "automatic",
     "ios": {
         "bundleIdentifier": "kr.pro203s.pawstep",
@@ -39,6 +42,7 @@ const config: ExpoConfig = {
         "ios"
     ],
     "plugins": [
+        "./plugins/with-kakao-map",
         "expo-router",
         [
             "expo-splash-screen",
