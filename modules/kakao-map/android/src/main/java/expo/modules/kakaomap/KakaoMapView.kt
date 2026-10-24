@@ -1,7 +1,6 @@
 package expo.modules.kakaomap
 
 import android.content.Context
-import com.facebook.react.bridge.LifecycleEventListener
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.KakaoMapSdk
@@ -13,7 +12,7 @@ import expo.modules.kotlin.views.ExpoView
 import expo.modules.kotlin.viewevent.EventDispatcher
 
 class KakaoMapView(context: Context, appContext: AppContext) :
-  ExpoView(context, appContext), LifecycleEventListener {
+  ExpoView(context, appContext) {
   override val shouldUseAndroidLayout = true
   val onMapReady by EventDispatcher<Unit>()
   val onMapError by EventDispatcher<Map<String, String>>()
@@ -25,13 +24,11 @@ class KakaoMapView(context: Context, appContext: AppContext) :
 
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
-    appContext.reactContext?.addLifecycleEventListener(this)
     updateState()
   }
 
   override fun onDetachedFromWindow() {
     mapView?.pause()
-    appContext.reactContext?.removeLifecycleEventListener(this)
     super.onDetachedFromWindow()
   }
 
@@ -71,14 +68,14 @@ class KakaoMapView(context: Context, appContext: AppContext) :
     if (visible) mapView?.resume() else mapView?.pause()
   }
 
-  override fun onHostResume() { foreground = true; updateState() }
-  override fun onHostPause() { foreground = false; updateState() }
-  override fun onHostDestroy() = destroy()
+  fun setForeground(value: Boolean) {
+    foreground = value
+    updateState()
+  }
 
   fun destroy() {
     if (disposed) return
     disposed = true
-    appContext.reactContext?.removeLifecycleEventListener(this)
     mapView?.pause()
     mapView?.finish()
     removeAllViews()

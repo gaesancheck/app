@@ -24,7 +24,10 @@ const config: ExpoConfig = {
     "userInterfaceStyle": "automatic",
     "ios": {
         "bundleIdentifier": "kr.pro203s.pawstep",
-        "icon": "./assets/app.icon"
+        "icon": "./assets/app.icon",
+        "infoPlist": {
+            "NSPhotoLibraryUsageDescription": "일기에 사진 첨부 등의 기능을 이용하려면 사진 접근 권한이 필요해요."
+        }
     },
     "android": {
         "package": "kr.pro203s.pawstep",
