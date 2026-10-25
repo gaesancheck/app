@@ -48,6 +48,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios -d",
     "dev:auth": "node --env-file=.env.local server/dev-oauth-server.mjs",
+    "dev:auth:tunnel": "bash scripts/dev-auth-tunnel.sh",
     "lint": "expo lint"
   },
   "private": true,

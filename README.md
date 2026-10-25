@@ -54,8 +54,18 @@ Google Cloud에서 OAuth 클라이언트를 **Web application**으로 만들고,
 ${PUBLIC_BASE_URL}/v1/auth/oauth/google/callback
 ```
 
-폰에서 테스트하려면 먼저 `ngrok http 3000` 같은 HTTPS 터널을 열고, 터널 주소를 `PUBLIC_BASE_URL`과
-`EXPO_PUBLIC_API_BASE_URL`에 넣으세요. Google Cloud의 승인된 리디렉션 URI에도 같은 터널 주소를 등록해야 합니다.
+폰 테스트에는 Cloudflare Quick Tunnel과 OAuth 서버를 함께 여는 스크립트를 사용할 수 있습니다.
+`cloudflared`가 없다면 `brew install cloudflared`로 설치한 뒤 실행합니다.
+
+```sh
+npm run dev:auth:tunnel
+```
+
+스크립트는 새 HTTPS 터널을 만들고 주소를 `.env.local`의 `PUBLIC_BASE_URL`과
+`EXPO_PUBLIC_API_BASE_URL`에 기록한 뒤 OAuth 서버를 시작합니다. Google Cloud의 승인된 리디렉션 URI에는
+터미널에 표시된 Google 콜백 주소를 등록하세요. Quick Tunnel 주소는
+실행할 때마다 달라질 수 있으므로 주소가 바뀌면 Google Cloud에도 새 URI를 등록해야 합니다.
+Expo 개발 서버가 이미 실행 중이라면 새 API 주소를 읽도록 재시작하세요. `Ctrl+C`를 누르면 터널과 OAuth 서버가 함께 종료됩니다.
 Google OAuth 동의 화면이 테스트 상태라면 테스트할 Google 계정을 테스트 사용자에 추가합니다.
 
 서버 실행:

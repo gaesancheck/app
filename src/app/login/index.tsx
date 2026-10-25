@@ -5,7 +5,8 @@ import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { signInWithOAuth } from "@/modules/oauth";
 import type { OAuthProvider } from "@/modules/oauthConfig";
-
+import CheckBox from "@/components/CheckBox";
+import { impactAsync, ImpactFeedbackStyle } from "expo-haptics";
 
 import SvgBG1 from '@/assets/svg/login/asset1.svg';
 import SvgBG2 from '@/assets/svg/login/asset2.svg';
@@ -14,8 +15,6 @@ import SvgBG4 from '@/assets/svg/login/asset4.svg';
 import SvgBack from '@/assets/svg/back.svg';
 import SvgEmail from '@/assets/svg/login/email.svg';
 import SvgPassword from '@/assets/svg/login/password.svg';
-import CheckBox from "@/components/CheckBox";
-import { impactAsync, ImpactFeedbackStyle } from "expo-haptics";
 
 const socialProviders = [
     { provider: "google", label: "Google로 로그인", background: "#FFFFFF", color: "#1F1F1F" },
