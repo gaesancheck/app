@@ -13,7 +13,7 @@ import SvgUser from "@/assets/svg/tabbar/user.svg";
 import useChooseByScheme from "@/modules/useChooseByScheme";
 
 const names = {
-    "index": ["홈", SvgHome] as const,
+    "home": ["홈", SvgHome] as const,
     "walk": ["산책", SvgCalendar] as const,
     "emergency": ["긴급", SvgSiren] as const,
     "community": ["커뮤니티", SvgMessageBox] as const,

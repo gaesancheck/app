@@ -12,7 +12,7 @@ export default function Loading() {
     const styles = getStyles(colors);
 
     useEffect(() => {
-        router.replace("/(tabs)");
+        router.replace("/(tabs)/home");
     }, []);
 
     return <View

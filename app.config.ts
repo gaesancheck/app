@@ -59,6 +59,8 @@ const config: ExpoConfig = {
     ],
     "plugins": [
         "./plugins/with-kakao-map",
+        "./plugins/with-google-modular-headers",
+        "./plugins/with-native-social-login",
         "expo-router",
         [
             "expo-splash-screen",

@@ -24,3 +24,57 @@ SDK 버전: Android `2.15.2`, iOS `2.12.19`. Android Maven 저장소는
 
 - [Android SDK 공식 문서](https://apis.map.kakao.com/android_v2/docs/getting-started/quickstart/)
 - [iOS SDK 공식 문서](https://apis.map.kakao.com/ios_v2/docs/getting-started/)
+
+## 소셜 OAuth 로그인
+
+로그인 화면은 네이버와 카카오의 네이티브 SDK를 사용합니다. `.env.local`에 아래 값을 설정한 뒤
+네이티브 앱을 다시 빌드합니다. 카카오 로그인은 기존 카카오맵과 같은 네이티브 앱 키를 사용합니다.
+
+```dotenv
+NATIVE_APP_KEY=카카오_네이티브_앱_키
+NAVER_CID=네이버_클라이언트_ID
+NAVER_CLIENT_SECRET=네이버_클라이언트_시크릿
+EXPO_PUBLIC_API_BASE_URL=https://api.example.com
+```
+
+카카오 Developers에는 Android 패키지와 iOS 번들 ID를 등록하고 카카오 로그인을 활성화합니다.
+네이버 Developers에는 같은 Android 패키지와 iOS 번들 ID, 앱 URL scheme
+`kr.pro203s.pawstep.naver`를 등록합니다. 네이버 SDK용 클라이언트 시크릿은 네이티브 앱에 포함됩니다.
+
+임시 OAuth 서버는 `server/dev-oauth-server.mjs`입니다. 환경 파일을 준비합니다.
+
+```sh
+test -f .env.local || cp .env.example .env.local
+```
+
+`.env.local`에 실제 카카오·네이버 키와 Google OAuth 웹 클라이언트 ID/시크릿을 채웁니다.
+Google Cloud에서 OAuth 클라이언트를 **Web application**으로 만들고, 아래 주소를 승인된 리디렉션 URI로 등록합니다.
+
+```text
+${PUBLIC_BASE_URL}/v1/auth/oauth/google/callback
+```
+
+폰에서 테스트하려면 먼저 `ngrok http 3000` 같은 HTTPS 터널을 열고, 터널 주소를 `PUBLIC_BASE_URL`과
+`EXPO_PUBLIC_API_BASE_URL`에 넣으세요. Google Cloud의 승인된 리디렉션 URI에도 같은 터널 주소를 등록해야 합니다.
+Google OAuth 동의 화면이 테스트 상태라면 테스트할 Google 계정을 테스트 사용자에 추가합니다.
+
+서버 실행:
+
+```sh
+bun run dev:auth
+```
+
+서버는 Google 인가·콜백·PKCE 코드 교환과 네이버·카카오 토큰 검증 API를 제공합니다.
+공급자 액세스 토큰은 네이버 `/v1/nid/me`, 카카오 `/v2/user/me`로 확인한 뒤 임시 JWT 앱 세션을 발급합니다.
+사용자와 OAuth 코드는 메모리에만 저장되므로 서버를 재시작하면 초기화됩니다. 이 서버는 로컬 개발 전용이며,
+프로덕션 배포나 실제 계정 저장에 사용하지 마세요. `/health`에서 서버 상태와 Google 키 설정 여부를 확인할 수 있습니다.
+
+Google 로그인은 브라우저 기반이라 서버 설정 후 바로 확인할 수 있습니다. 네이버·카카오 로그인은 네이티브 SDK를 포함한
+개발 앱이 필요하며, 키나 네이티브 모듈을 바꾼 뒤에는 앱을 다시 빌드해 설치해야 합니다.
+
+앱은 공급자 액세스 토큰을 `POST /v1/auth/oauth/naver/exchange` 또는
+`POST /v1/auth/oauth/kakao/exchange`에 `{ access_token, keep_me_logged_in }` 형태로 보내고,
+서버가 반환하는 `{ access_token, expires_in }` 앱 세션을 저장합니다. Google은 서버의 OAuth 코드 교환을 거친 뒤
+같은 세션 형식으로 로그인합니다. 공급자 토큰을 앱 세션으로 직접 저장하지 않습니다.
+
+- [Google OAuth 웹 서버 흐름](https://developers.google.com/identity/protocols/oauth2/web-server)

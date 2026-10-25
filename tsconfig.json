@@ -11,7 +11,7 @@
       ]
     },
     "types": [
-      "./declarations.d.ts"
+      "./src/types/types.d.ts"
     ]
   },
   "include": [

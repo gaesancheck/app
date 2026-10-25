@@ -1,9 +1,8 @@
 import * as SecureStore from "expo-secure-store";
-import type { UserData } from "./userData";
 
 export type SessionData = {
-    userData: UserData;
     jwt: string;
+    expiresAt?: number;
 };
 
 const STORAGE_KEY = "session";
@@ -15,11 +14,8 @@ function isSessionData(value: unknown): value is SessionData {
         "jwt" in value &&
         typeof value.jwt === "string" &&
         value.jwt.trim().length > 0 &&
-        "userData" in value &&
-        typeof value.userData === "object" &&
-        value.userData !== null &&
-        "loggedIn" in value.userData &&
-        typeof value.userData.loggedIn === "boolean"
+        (!("expiresAt" in value) ||
+            (typeof value.expiresAt === "number" && Number.isFinite(value.expiresAt)))
     );
 }
 
@@ -30,7 +26,9 @@ export const session = {
 
         try {
             const data: unknown = JSON.parse(stored);
-            return isSessionData(data) ? data : null;
+            if (!isSessionData(data)) return null;
+            if (data.expiresAt !== undefined && data.expiresAt <= Date.now()) return null;
+            return data;
         } catch {
             return null;
         }

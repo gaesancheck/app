@@ -2,30 +2,29 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type UserData = {
     loggedIn: boolean;
+    walkRecords: WalkRecord[];
 };
 
 const STORAGE_KEY = "userData";
 
+const DEFAULT: UserData = {
+    "loggedIn": false,
+    "walkRecords": []
+}
+
 export const userData = {
     async get(): Promise<UserData> {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored === null) return { loggedIn: false };
+        if (stored === null) return DEFAULT;
 
         try {
             const data: unknown = JSON.parse(stored);
-            if (
-                typeof data === "object" &&
-                data !== null &&
-                "loggedIn" in data &&
-                typeof data.loggedIn === "boolean"
-            ) {
-                return { loggedIn: data.loggedIn };
-            }
+            return data as UserData;
         } catch {
             // Invalid saved data falls back to the logged-out state.
         }
 
-        return { loggedIn: false };
+        return DEFAULT;
     },
 
     async set(data: UserData): Promise<void> {
