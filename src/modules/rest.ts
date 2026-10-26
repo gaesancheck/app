@@ -79,8 +79,8 @@ export const APIAuth = {
     async login(data: POSTAPIAuthLogin): Promise<RESTResponse<APIAuthSession, APIError>> {
         // POST /v1/auth/login
         // Content-Type: application/json
-        // body: POSTApiAuthLogin
-        // status: 200
+        // body: POSTAPIAuthLogin
+        // status: 200 (APIAuthSession), 401 (invalid credentials)
         await new Promise(resolve => setTimeout(resolve, 500));
 
         if (data.id !== "test" || data.password !== "test") return {
@@ -106,8 +106,8 @@ export const APIAuth = {
     async findId(data: POSTAPIAuthFindID): Promise<RESTResponse<null, APIError>> {
         // POST /v1/auth/findId
         // Content-Type: application/json
-        // body: null
-        // status: 204
+        // body: POSTAPIAuthFindID
+        // status: 204 (no content)
         await new Promise(resolve => setTimeout(resolve, 500));
 
         return {
@@ -120,8 +120,8 @@ export const APIAuth = {
     async findPw(data: POSTAPIAuthFindPW): Promise<RESTResponse<null, APIError>> {
         // POST /v1/auth/findPw
         // Content-Type: application/json
-        // body: null
-        // status: 200
+        // body: POSTAPIAuthFindPW
+        // status: 204 (no content)
         await new Promise(resolve => setTimeout(resolve, 500));
 
         return {
@@ -132,6 +132,10 @@ export const APIAuth = {
         };
     },
     async authorizeGoogle(data: OAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
+        // POST /v1/auth/oauth/google/exchange
+        // Content-Type: application/json
+        // body: OAuthExchangeRequest
+        // status: 200 (APIAuthSession), 400 (invalid request), 401 (invalid/expired code or PKCE), 500 (server error)
         return REST<APIAuthSession, APIError>("/v1/auth/oauth/google/exchange", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -140,6 +144,10 @@ export const APIAuth = {
         });
     },
     async authorizeNaver(data: NativeOAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
+        // POST /v1/auth/oauth/naver/exchange
+        // Content-Type: application/json
+        // body: NativeOAuthExchangeRequest
+        // status: 200 (APIAuthSession), 400 (invalid request), 401 (provider token rejected), 500 (server error)
         return REST<APIAuthSession, APIError>("/v1/auth/oauth/naver/exchange", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -148,6 +156,10 @@ export const APIAuth = {
         });
     },
     async authorizeKakao(data: NativeOAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
+        // POST /v1/auth/oauth/kakao/exchange
+        // Content-Type: application/json
+        // body: NativeOAuthExchangeRequest
+        // status: 200 (APIAuthSession), 400 (invalid request), 401 (provider token rejected), 500 (server error)
         return REST<APIAuthSession, APIError>("/v1/auth/oauth/kakao/exchange", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

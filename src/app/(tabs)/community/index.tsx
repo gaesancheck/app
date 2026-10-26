@@ -7,7 +7,6 @@ import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import useChooseByScheme from "@/modules/useChooseByScheme";
 
 import SvgSearch from '@/assets/svg/search.svg';
-import SvgList from '@/assets/svg/list.svg';
 import SvgHeart from '@/assets/svg/heart.svg';
 import SvgComment from '@/assets/svg/comment.svg';
 import SvgBookmark from '@/assets/svg/bookmark.svg';
@@ -205,7 +204,7 @@ export default function Page() {
                     <SvgSearch width={15} height={15} />
                 </TouchableOpacity>
                 <TouchableOpacity hitSlop={7}>
-                    <SvgList width={15} height={15} />
+                    <SvgBookmark width={15} height={15} />
                 </TouchableOpacity>
             </View>
         </View>
@@ -247,7 +246,7 @@ export default function Page() {
 
                         // bookmark
                     }}>
-                        {item.bookmarked ? <SvgBookmarkFilled /> : <SvgBookmark />}
+                        {item.bookmarked ? <SvgBookmarkFilled /> : <SvgBookmark color="#9CA3AF" />}
                     </TouchableOpacity>
                 </View>
             </View>}
