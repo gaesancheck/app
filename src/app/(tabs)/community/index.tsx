@@ -7,10 +7,10 @@ import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import useChooseByScheme from "@/modules/useChooseByScheme";
 
 import SvgSearch from '@/assets/svg/search.svg';
-import SvgHeart from '@/assets/svg/heart.svg';
-import SvgComment from '@/assets/svg/comment.svg';
 import SvgBookmark from '@/assets/svg/bookmark.svg';
 import SvgBookmarkFilled from '@/assets/svg/bookmark_filled.svg';
+import SvgHeart from '@/assets/svg/heart.svg';
+import SvgComment from '@/assets/svg/comment.svg';
 import SvgPlus from '@/assets/svg/plus.svg';
 
 type Posts = {
