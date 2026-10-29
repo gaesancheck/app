@@ -2,7 +2,6 @@ import { Alert, Dimensions, Image, Platform, Pressable, StyleSheet, Text, TextIn
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LightColors, DarkColors, Colors } from "../../../../app.config";
 import { useState } from "react";
-import * as Haptics from 'expo-haptics';
 import { router } from "expo-router";
 import * as ImagePicker from 'expo-image-picker';
 import useChooseByScheme from "@/modules/useChooseByScheme";
@@ -136,7 +135,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     },
     "headerText": {
         "textAlign": "center",
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "fontSize": 20
     },
     "form": {
@@ -153,7 +152,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     },
     "sectionText": {
         "color": "#6E6E6E",
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "fontSize": 18
     },
     "sectionTextInput": {
@@ -177,7 +176,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
         "top": 17,
         "left": 19,
         "right": 19,
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "fontSize": 18,
         "color": "#9CA3AF"
     },
@@ -194,7 +193,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
         "flexDirection": "column"
     },
     "noPictureText": {
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "fontSize": 14,
         "color": "#6E6E6E"
     },
@@ -210,7 +209,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
         "borderRadius": 10
     },
     "uploadText": {
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "color": "#fff",
         "fontSize": 25
     },

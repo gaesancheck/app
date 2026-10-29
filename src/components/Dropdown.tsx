@@ -98,7 +98,7 @@ export default function Dropdown({
                     onPress={() => selectOption(option)}
                     style={styles.option}
                 >
-                    <Text style={styles.optionLabel}>{option.label}</Text>
+                    <Text style={option.value === value ? styles.optionLabelSelected : styles.optionLabel }>{option.label}</Text>
                 </Pressable>)}
             </ScrollView>
         </Animated.View>
@@ -140,8 +140,13 @@ const styles = StyleSheet.create({
         "justifyContent": "center",
     },
     "optionLabel": {
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "fontSize": 10,
         "color": "#9B9B9B",
+    },
+    "optionLabelSelected": {
+        "fontFamily": "Ownglyph PDH",
+        "fontSize": 13,
+        "color": "#474747",
     },
 });

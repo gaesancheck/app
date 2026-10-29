@@ -1,6 +1,5 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import * as Haptics from 'expo-haptics';
 import { Colors, DarkColors, LightColors } from "../../app.config";
 import { Tabs } from "expo-router";
 import useChooseByScheme from "@/modules/useChooseByScheme";
@@ -57,7 +56,7 @@ export default function TabBar({ state, emitter, navigateToTab, insets }: TabBar
                     }}
                     onLongPress={() => emitter.emit({ type: "tabLongPress", target: route.key })}
                 >
-                    {selected && route.name === "index" ? <SvgSelectedHome width={30} height={30} color={color} /> : <Icon width={30} height={30} color={color} />}
+                    {selected && route.name === "home" ? <SvgSelectedHome width={30} height={30} color={color} /> : <Icon width={30} height={30} color={color} />}
                     <Text style={[styles.tabbarItemText, { color }]}>{label}</Text>
                 </TouchableOpacity>;
             })}

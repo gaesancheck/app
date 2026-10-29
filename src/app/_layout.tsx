@@ -2,7 +2,10 @@ import { router, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
-import * as DevClient from 'expo-dev-client';
+import * as DevTools from 'expo-dev-client';
+import userData from "@/modules/userData";
+import * as Expo from 'expo';
+import dayjs from "dayjs";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -13,14 +16,39 @@ export default function RootLayout() {
 
     useEffect(() => {
         (async () => {
-            if (__DEV__)
-                DevClient.registerDevMenuItems([
-                    {
-                        "name": "Sitemap",
-                        "callback": () => router.push("/_sitemap"),
-                        "shouldCollapse": true
+            __DEV__ && DevTools.registerDevMenuItems([
+                {
+                    "name": "Save example data",
+                    "callback": async () => {
+                        await userData.set({
+                            "loggedIn": true,
+                            "walkRecords": [{
+                                "id": "",
+                                "date": dayjs().format("YYYYMMDD"),
+                                "rate": 5,
+                                "routes": [{
+                                    "latitude": 37.553881,
+                                    "longitude": 126.970488
+                                }, {
+                                    "latitude": 36.7922,
+                                    "longitude": 127.1046
+                                }],
+                                "duration": 2400,
+                                "distance": 415,
+                                "destination": "아산역",
+                                "weather": "cloudy",
+                                "content": "오늘은 우리집 갱얼쥐를 대리고 아산역으로 산책을 갔다. 80km를 넘게 다니니까 평생 할 산책 오늘 한 번에 다한 것 같았다. 다음에는 용산역까지만 가야겠다.",
+                            }]
+                        });
+
+                        await Expo.reloadAppAsync("Saved example data from DevClient");
                     }
-                ]);
+                },
+                {
+                    "name": "sitemap",
+                    "callback": () => router.replace("/_sitemap")
+                }
+            ]);
 
             await Font.loadAsync({
                 "NanumSquareNeo-Light": require("@/assets/fonts/NanumSquareNeo-aLt.ttf"),
@@ -28,7 +56,7 @@ export default function RootLayout() {
                 "NanumSquareNeo-Bold": require("@/assets/fonts/NanumSquareNeo-cBd.ttf"),
                 "NanumSquareNeo-ExtraBold": require("@/assets/fonts/NanumSquareNeo-dEb.ttf"),
                 "NanumSquareNeo-Heavy": require("@/assets/fonts/NanumSquareNeo-eHv.ttf"),
-                "ParkDaHyeon": require("@/assets/fonts/ParkDaHyeon.ttf"), // 온글잎 박다현체
+                "Ownglyph PDH": require("@/assets/fonts/ParkDaHyeon.ttf"), // 온글잎 박다현체
             });
 
             setFontsLoaded(true);

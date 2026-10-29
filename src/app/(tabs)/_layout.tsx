@@ -13,10 +13,10 @@ export default function TabLayout() {
         tabBar={(props) => <TabBar {...props} />}
         screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colors.background } }}
     >
-        <Tabs.Screen name="home" options={{ title: "홈" }} />
-        <Tabs.Screen name="walk" options={{ title: "산책" }} />
-        <Tabs.Screen name="emergency" options={{ title: "긴급" }} />
-        <Tabs.Screen name="community" options={{ title: "커뮤니티" }} />
-        <Tabs.Screen name="mypage" options={{ title: "마이" }} />
+        <Tabs.Screen name="home" options={{ "title": "홈" }} />
+        <Tabs.Screen name="walk" options={{ "title": "산책" }} />
+        <Tabs.Screen name="emergency" options={{ "title": "긴급" }} />
+        <Tabs.Screen name="community" options={{ "title": "커뮤니티" }} />
+        <Tabs.Screen name="mypage" options={{ "title": "마이" }} />
     </Tabs>;
 }

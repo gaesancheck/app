@@ -3,24 +3,40 @@ import { ExpoConfig } from '@expo/config';
 export type Colors = typeof LightColors | typeof DarkColors;
 
 export const LightColors = {
+    /** #aabb8d */
     "green_light1": "#aabb8d",
+    /** #688f6e */
     "green_light2": "#688f6e",
+    /** #2f6439 */
     "green_dark1": "#2f6439",
+    /** #2a5032 */
     "green_dark2": "#2a5032",
+    /** #eaf0e6 */
     "white": "#eaf0e6",
+    /** #faead7 */
     "white2": "#faead7",
+    /** #edd693 */
     "yellow": "#edd693",
+    /** #F7F7F2 */
     "background": "#F7F7F2",
 };
 
 export const DarkColors = {
+    /** #aabb8d */
     "green_light1": "#aabb8d",
+    /** #688f6e */
     "green_light2": "#688f6e",
+    /** #2f6439 */
     "green_dark1": "#2f6439",
+    /** #2a5032 */
     "green_dark2": "#2a5032",
+    /** #eaf0e6 */
     "white": "#eaf0e6",
+    /** #faead7 */
     "white2": "#faead7",
+    /** #edd693 */
     "yellow": "#edd693",
+    /** #F7F7F2 */
     "background": "#F7F7F2",
 };
 

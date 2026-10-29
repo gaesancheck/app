@@ -9,7 +9,7 @@ import dayjs from 'dayjs';
 import Dropdown from "@/components/Dropdown";
 import { haptics } from "@/modules/haptics";
 
-import SvgSearch from '@/assets/svg/search.svg';
+import SvgArchive from '@/assets/svg/archive.svg';
 import SvgList from '@/assets/svg/list.svg';
 import SvgChevronDown from "@/assets/svg/chevronDown.svg";
 import SvgVeryGood from "@/assets/svg/dogs/verygood.svg";
@@ -17,13 +17,10 @@ import SvgGood from "@/assets/svg/dogs/good.svg";
 import SvgNormal from "@/assets/svg/dogs/normal.svg";
 import SvgSad from "@/assets/svg/dogs/sad.svg";
 import SvgAngry from "@/assets/svg/dogs/angry.svg";
+import SmallDiary from "@/components/SmallDiary";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const DOGS = { 5: SvgVeryGood, 4: SvgGood, 3: SvgNormal, 2: SvgSad, 1: SvgAngry };
-const WEATHER = {
-    "cloudy": "☁️", "partly_cloudy": "🌤️", "mostly_cloudy": "⛅️",
-    "clear": "☀️", "rainy": "🌧️", "thunder": "⛈️", "snowy": "❄️",
-};
 
 export default function Page() {
     const safeArea = useSafeAreaInsets();
@@ -39,6 +36,7 @@ export default function Page() {
     const cellCount = Math.ceil((firstWeekday + dayCount) / 7) * 7;
 
     const [data, setData] = useState<UserData>(SAVE_DEFAULT);
+    const [diary, setDiary] = useState<WalkRecord>();
 
     useFocusEffect(
         useCallback(() => {
@@ -53,7 +51,7 @@ export default function Page() {
             <Text style={styles.headerText}>산책 기록</Text>
             <View style={styles.headerItems}>
                 <TouchableOpacity hitSlop={7}>
-                    <SvgSearch width={15} height={15} />
+                    <SvgArchive width={15} height={15} />
                 </TouchableOpacity>
                 <TouchableOpacity hitSlop={7}>
                     <SvgList width={15} height={15} />
@@ -64,7 +62,7 @@ export default function Page() {
             <Dropdown
                 disabled={data.walkRecords.length === 0}
                 label={`${currentYear}년 ${currentMonth + 1}월`}
-                value={currentMonth}
+                value={`${currentYear}-${currentMonth + 1}`}
                 options={[...new Set(data.walkRecords.map(v => dayjs(v.date, "YYYYMMDD")).map(v => ({
                     "label": `${v.year()}년 ${v.month() + 1}월`,
                     "value": `${v.year()}-${v.month() + 1}`
@@ -102,16 +100,23 @@ export default function Page() {
                             style={styles.dayCell}
                         >
                             <Text style={styles.dayNumber}>{isOutsideMonth ? "" : day}</Text>
-                            {!diary ? <Pressable
-                                style={isToday ? styles.dayCircleActive : styles.dayCircleInactive}
-                                onClick={() => { haptics.light(); router.push("/(tabs)/home/write"); }}
-                            /> : <Pressable>
-                                {Dog && <Dog />}
-                            </Pressable>}
+                            {!diary ?
+                                <Pressable
+                                    style={isToday ? styles.dayCircleActive : styles.dayCircleInactive}
+                                    onPress={() => { haptics.light(); router.push("/(tabs)/home/write"); }}
+                                /> :
+                                <Pressable onPress={() => {
+                                    haptics.light();
+                                    setDiary(diary);
+                                }}>
+                                    {Dog && <Dog />}
+                                </Pressable>
+                            }
                         </View>;
                     })}
                 </View>
             </View>
+            {diary && <SmallDiary data={diary} styles={{ "marginTop": 30 }} />}
         </ScrollView>
     </View>;
 }
@@ -139,7 +144,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
         "marginTop": 23,
     },
     "monthText": {
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "fontSize": 18,
         "color": "#474747",
     },
@@ -154,7 +159,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     "weekday": {
         "width": `${100 / 7}%`,
         "textAlign": "center",
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "fontSize": 18,
         "color": "#474747",
     },
@@ -169,7 +174,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
         "paddingHorizontal": 32,
     },
     "headerText": {
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "color": "#2F3A2D",
         "fontSize": 28
     },
@@ -189,7 +194,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     "dayNumber": {
         "width": "100%",
         "textAlign": "center",
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "fontSize": 12,
         "color": "#858681",
     },

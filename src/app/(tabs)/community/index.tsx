@@ -1,7 +1,6 @@
 import { router } from "expo-router";
 import { FlatList, Image, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
-import * as Haptics from 'expo-haptics';
 import { Colors, LightColors, DarkColors } from "../../../../app.config";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import useChooseByScheme from "@/modules/useChooseByScheme";
@@ -45,7 +44,7 @@ function Category({
         onPress?.();
     }}>
         <Text style={{
-            "fontFamily": "ParkDaHyeon",
+            "fontFamily": "Ownglyph PDH",
             "fontSize": 15,
             "color": enabled ? "#FAFBF7" : "#848484"
         }}>{label}</Text>
@@ -276,7 +275,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
         "paddingHorizontal": 32
     },
     "headerText": {
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "color": "#2F3A2D",
         "fontSize": 28
     },
@@ -348,7 +347,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     },
     "postStatusText": {
         "marginVertical": "auto",
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "fontSize": 12,
         "color": "#6E6E6E"
     },
@@ -363,12 +362,12 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     },
     "postTitle": {
         "fontSize": 22,
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "color": "#474747"
     },
     "postDescription": {
         "fontSize": 14,
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "color": "#474747",
         "textDecorationStyle": "dotted",
         "textDecorationLine": "underline",

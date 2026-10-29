@@ -50,7 +50,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     },
     "headerText": {
         "textAlign": "center",
-        "fontFamily": "ParkDaHyeon",
+        "fontFamily": "Ownglyph PDH",
         "fontSize": 20
     },
     "form": {

@@ -4,10 +4,6 @@ import { Colors, DarkColors, LightColors } from "../../app.config";
 import { useEffect } from "react";
 import { router } from "expo-router";
 import useChooseByScheme from "@/modules/useChooseByScheme";
-import * as DevTools from 'expo-dev-client';
-import userData from "@/modules/userData";
-import * as Expo from 'expo';
-import dayjs from "dayjs";
 
 import Footstep from "@/assets/svg/balzaguk.svg";
 
@@ -17,39 +13,7 @@ export default function Loading() {
     const styles = getStyles(colors);
 
     useEffect(() => {
-        __DEV__ && DevTools.registerDevMenuItems([
-            {
-                "name": "Save example data",
-                "callback": async () => {
-                    await userData.set({
-                        "loggedIn": true,
-                        "walkRecords": [{
-                            "id": "",
-                            "date": dayjs().format("YYYYMMDD"),
-                            "rate": 5,
-                            "routes": [{
-                                "latitude": 37.553881,
-                                "longitude": 126.970488
-                            }, {
-                                "latitude": 36.7922,
-                                "longitude": 127.1046
-                            }],
-                            "duration": 2400,
-                            "distance": 415,
-                            "destination": "아산역",
-                            "weather": "cloudy",
-                            "content": "오늘은 우리집 갱얼쥐를 대리고 아산역으로 산책을 갔다. 80km를 넘게 다니니까 평생 할 산책 오늘 한 번에 다한 것 같았다. 다음에는 용산역까지만 가야겠다.",
-                        }]
-                    });
-
-                    await Expo.reloadAppAsync("Saved example data from DevClient");
-                }
-            },
-            {
-                "name": "sitemap",
-                "callback": () => router.replace("/_sitemap")
-            }
-        ]);
+        
 
         router.replace("/(tabs)/home");
     }, []);
