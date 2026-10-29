@@ -127,7 +127,7 @@ export const APIAuth = {
         // status: 200 (APIAuthSession), 400 (invalid request), and more
 
         return {
-            "status": 204,
+            "status": 200,
             "success": true,
             "headers": {},
             "data": {

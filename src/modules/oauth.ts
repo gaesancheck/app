@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import * as WebBrowser from "expo-web-browser";
-import { APIAuth } from "./rest";
+import { APIAuth } from "./rest/auth";
 import { OAUTH_REDIRECT_URI, type OAuthProvider } from "./oauthConfig";
 import session from "./session";
 import userData from "./userData";

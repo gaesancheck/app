@@ -14,5 +14,6 @@ export default function CommunityLayout() {
     }}>
         <Stack.Screen name="index" options={{ "headerShown": false }} />
         <Stack.Screen name="write" options={{ "headerShown": false }} />
+        <Stack.Screen name="archives" options={{ "headerShown": false }} />
     </Stack>;
 }

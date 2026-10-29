@@ -54,7 +54,7 @@ export const APIMy = {
         await new Promise(r => setTimeout(r, 500));
 
         return {
-            "status": 204,
+            "status": 200,
             "success": true,
             "headers": {},
             "data": {
@@ -104,11 +104,11 @@ export const APIMy = {
     },
     async getFaQs(): Promise<RESTResponse<APIFaQ[], APIError>> {
         // GET /v1/me/faqs
-        // status: 204 (null), 401 (unauthorized), and more
+        // status: 200 (APIFaQ[]), 401 (unauthorized), and more
         await new Promise(r => setTimeout(r, 500));
 
         return {
-            "status": 204,
+            "status": 200,
             "success": true,
             "headers": {},
             "data": [

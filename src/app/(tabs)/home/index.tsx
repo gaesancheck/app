@@ -7,6 +7,7 @@ import { router, useFocusEffect } from "expo-router";
 import userData, { SAVE_DEFAULT, UserData } from "@/modules/userData";
 import dayjs from 'dayjs';
 import Dropdown from "@/components/Dropdown";
+import SelectionDropdown from "@/components/SelectionDropdown";
 import { haptics } from "@/modules/haptics";
 
 import SvgArchive from '@/assets/svg/archive.svg';
@@ -18,6 +19,7 @@ import SvgNormal from "@/assets/svg/dogs/normal.svg";
 import SvgSad from "@/assets/svg/dogs/sad.svg";
 import SvgAngry from "@/assets/svg/dogs/angry.svg";
 import SmallDiary from "@/components/SmallDiary";
+import Dialog from "@/components/Dialog";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const DOGS = { 5: SvgVeryGood, 4: SvgGood, 3: SvgNormal, 2: SvgSad, 1: SvgAngry };
@@ -26,8 +28,8 @@ export default function Page() {
     const safeArea = useSafeAreaInsets();
     const colors = useChooseByScheme(LightColors, DarkColors);
     const styles = getStyles(colors, safeArea);
-    const now = dayjs();
 
+    const now = dayjs();
     const [currentYear, setCurrentYear] = useState(now.year());
     const [currentMonth, setCurrentMonth] = useState(now.month());
 
@@ -37,6 +39,11 @@ export default function Page() {
 
     const [data, setData] = useState<UserData>(SAVE_DEFAULT);
     const [diary, setDiary] = useState<WalkRecord>();
+    const [isDeletingMode, setIsDeletingMode] = useState(false);
+
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [deleteDialogDesc, setDeleteDialogDesc] = useState("");
+    const [deleteDialogTarget, setDeleteDialogTarget] = useState<string>();
 
     useFocusEffect(
         useCallback(() => {
@@ -46,79 +53,136 @@ export default function Page() {
         }, [])
     );
 
-    return <View style={styles.container}>
-        <View style={styles.header}>
-            <Text style={styles.headerText}>산책 기록</Text>
-            <View style={styles.headerItems}>
-                <TouchableOpacity hitSlop={7}>
-                    <SvgArchive width={15} height={15} />
-                </TouchableOpacity>
-                <TouchableOpacity hitSlop={7}>
-                    <SvgList width={15} height={15} />
-                </TouchableOpacity>
-            </View>
-        </View>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            <Dropdown
-                disabled={data.walkRecords.length === 0}
-                label={`${currentYear}년 ${currentMonth + 1}월`}
-                value={`${currentYear}-${currentMonth + 1}`}
-                options={[...new Set(data.walkRecords.map(v => dayjs(v.date, "YYYYMMDD")).map(v => ({
-                    "label": `${v.year()}년 ${v.month() + 1}월`,
-                    "value": `${v.year()}-${v.month() + 1}`
-                })))]}
-                onChange={(value) => {
-                    const [year, month] = (value as string).split("-");
-                    setCurrentYear(Number(year));
-                    setCurrentMonth(Number(month) - 1);
-                }}
-                icon={<SvgChevronDown width={11} height={6} />}
-                containerStyle={styles.monthTitle}
-                labelStyle={styles.monthText}
-            />
-            <View style={styles.calendar}>
-                <View style={styles.weekdays}>
-                    {WEEKDAYS.map((weekday) => <Text key={weekday} style={styles.weekday}>{weekday}</Text>)}
+    return <>
+        <Dialog
+            visible={showDeleteDialog}
+            onClose={() => setShowDeleteDialog(false)}
+            buttons={[
+                {
+                    "label": "취소",
+                    "onPress": () => setShowDeleteDialog(false),
+                    "variant": "outline"
+                },
+                {
+                    "label": "삭제",
+                    "onPress": async () => {
+                        await userData.update("walkRecords", data.walkRecords.filter(v => v.id !== deleteDialogTarget));
+                        setData(await userData.get());
+                        setDiary(undefined);
+                        setShowDeleteDialog(false);
+                    }
+                }
+            ]}
+        >
+            {deleteDialogDesc}
+        </Dialog>
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.headerText}>산책 기록</Text>
+                <View style={styles.headerItems}>
+                    <TouchableOpacity hitSlop={7} onPress={() => router.replace("/(tabs)/home/archives")}>
+                        <SvgArchive width={15} height={15} />
+                    </TouchableOpacity>
+                    <Dropdown
+                        options={[
+                            { "label": "검색하기" },
+                            (isDeletingMode ? {
+                                "label": "삭제 취소",
+                                "onPress": () => setIsDeletingMode(false)
+                            } : {
+                                "label": "일기 삭제",
+                                "onPress": () => setIsDeletingMode(true)
+                            }),
+                        ]}
+                    >
+                        <SvgList width={15} height={15} />
+                    </Dropdown>
                 </View>
-                <View style={styles.grid}>
-                    {Array.from({ "length": cellCount }, (_, i) => {
-                        const day = i - firstWeekday + 1;
-                        const isOutsideMonth = day < 1 || day > dayCount;
-                        const isToday = day === now.date();
+            </View>
+            <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+                <SelectionDropdown
+                    disabled={data.walkRecords.length === 0}
+                    value={`${currentYear}-${currentMonth + 1}`}
+                    options={[...new Set(data.walkRecords.map(v => dayjs(v.date, "YYYYMMDD")).map(v => ({
+                        "label": `${v.year()}년 ${v.month() + 1}월`,
+                        "value": `${v.year()}-${v.month() + 1}`
+                    })))]}
+                    onChange={(value) => {
+                        const [year, month] = (value as string).split("-");
+                        setCurrentYear(Number(year));
+                        setCurrentMonth(Number(month) - 1);
+                    }}
+                    containerStyle={styles.monthTitle}
+                >
+                    <Text style={styles.monthText}>{currentYear}년 {currentMonth + 1}월</Text>
+                    {data.walkRecords.length > 0 && <SvgChevronDown width={11} height={6} />}
+                </SelectionDropdown>
+                <View style={styles.calendar}>
+                    <View style={styles.weekdays}>
+                        {WEEKDAYS.map((weekday) => <Text key={weekday} style={styles.weekday}>{weekday}</Text>)}
+                    </View>
+                    <View style={styles.grid}>
+                        {Array.from({ "length": cellCount }, (_, i) => {
+                            const day = i - firstWeekday + 1;
+                            const isOutsideMonth = day < 1 || day > dayCount;
+                            const isToday = day === now.date();
 
-                        if (isOutsideMonth) return <View key={`calendar-${i}`} style={styles.dayCell} />
+                            if (isOutsideMonth) return <View key={`calendar-${i}`} style={styles.dayCell} />
 
-                        const diary = data.walkRecords.find(v => dayjs()
-                            .set('year', currentYear)
-                            .set('month', currentMonth)
-                            .set('date', day).format("YYYYMMDD") === v.date
-                        );
-                        const Dog = diary ? DOGS[diary.rate] ?? SvgNormal : null;
+                            const diary = data.walkRecords.find(v => dayjs()
+                                .set('year', currentYear)
+                                .set('month', currentMonth)
+                                .set('date', day).format("YYYYMMDD") === v.date
+                            );
+                            const Dog = diary ? DOGS[diary.rate] ?? SvgNormal : null;
 
-                        return <View
-                            key={`calendar-${i}`}
-                            style={styles.dayCell}
+                            return <View
+                                key={`calendar-${i}`}
+                                style={styles.dayCell}
+                            >
+                                <Text style={styles.dayNumber}>{isOutsideMonth ? "" : day}</Text>
+                                {!diary ?
+                                    <Pressable
+                                        style={isToday ? styles.dayCircleActive : styles.dayCircleInactive}
+                                        onPress={() => { haptics.light(); router.push("/(tabs)/home/write"); }}
+                                    /> :
+                                    <Pressable onPress={() => {
+                                        haptics.light();
+                                        setDiary(diary);
+                                    }}>
+                                        {Dog && <Dog />}
+                                    </Pressable>
+                                }
+                            </View>;
+                        })}
+                    </View>
+                </View>
+                {diary && <View style={styles.diaryContainer}>
+                    <View style={styles.diaryDoneSlot}>
+                        {isDeletingMode && <TouchableOpacity
+                            accessibilityRole="button"
+                            style={styles.diaryDoneButton}
+                            onPress={() => {
+                                haptics.light();
+                            }}
                         >
-                            <Text style={styles.dayNumber}>{isOutsideMonth ? "" : day}</Text>
-                            {!diary ?
-                                <Pressable
-                                    style={isToday ? styles.dayCircleActive : styles.dayCircleInactive}
-                                    onPress={() => { haptics.light(); router.push("/(tabs)/home/write"); }}
-                                /> :
-                                <Pressable onPress={() => {
-                                    haptics.light();
-                                    setDiary(diary);
-                                }}>
-                                    {Dog && <Dog />}
-                                </Pressable>
-                            }
-                        </View>;
-                    })}
-                </View>
-            </View>
-            {diary && <SmallDiary data={diary} styles={{ "marginTop": 30 }} />}
-        </ScrollView>
-    </View>;
+                            <Text style={styles.diaryDoneText}>완료</Text>
+                        </TouchableOpacity>}
+                    </View>
+                    <SmallDiary
+                        showDeleteButton={isDeletingMode}
+                        data={diary}
+                        styles={{ "marginHorizontal": 0 }}
+                        onPressDelete={() => {
+                            setDeleteDialogDesc("정말로 일기를 삭제하시겠어요?");
+                            setDeleteDialogTarget(diary.id);
+                            setShowDeleteDialog(true);
+                        }}
+                    />
+                </View>}
+            </ScrollView>
+        </View>
+    </>;
 }
 
 const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
@@ -135,6 +199,30 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     },
     "content": {
         "paddingBottom": 20,
+    },
+    "diaryContainer": {
+        "position": "relative",
+        "marginHorizontal": 19,
+    },
+    "diaryDoneSlot": {
+        "height": 26,
+        "alignItems": "flex-end",
+        "marginBottom": 11,
+    },
+    "diaryDoneButton": {
+        "width": 59,
+        "height": 26,
+        "borderRadius": 13,
+        "borderWidth": 1,
+        "borderColor": "#688F6E",
+        "backgroundColor": colors.background,
+        "alignItems": "center",
+        "justifyContent": "center",
+    },
+    "diaryDoneText": {
+        "fontFamily": "Ownglyph PDH",
+        "fontSize": 14,
+        "color": "#688F6E",
     },
     "monthTitle": {
         "flexDirection": "row",

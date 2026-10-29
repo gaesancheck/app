@@ -3,37 +3,28 @@ import type { ReactNode } from "react";
 import {
     Animated,
     Pressable,
-    ScrollView,
     StyleSheet,
     Text,
     View,
 } from "react-native";
-import type { StyleProp, TextStyle, ViewStyle } from "react-native";
+import type { StyleProp, ViewStyle } from "react-native";
 
 export type DropdownOption = {
     label: string;
-    value: string | number;
+    onPress?: () => void;
 };
 
 type DropdownProps = {
-    label: string;
-    value: string | number;
+    children: ReactNode;
     options: DropdownOption[];
-    onChange: (value: string | number) => void;
-    icon?: ReactNode;
     containerStyle?: StyleProp<ViewStyle>;
-    labelStyle?: StyleProp<TextStyle>;
     disabled?: boolean
 };
 
 export default function Dropdown({
-    label,
-    value,
+    children,
     options,
-    onChange,
-    icon,
     containerStyle,
-    labelStyle,
     disabled
 }: DropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
@@ -47,10 +38,6 @@ export default function Dropdown({
         inputRange: [0, 1],
         outputRange: [-4, 0],
     });
-    const rotation = progress.interpolate({
-        inputRange: [0, 1],
-        outputRange: ["0deg", "180deg"],
-    });
 
     useEffect(() => {
         Animated.timing(progress, {
@@ -61,7 +48,7 @@ export default function Dropdown({
     }, [isOpen, progress]);
 
     const selectOption = (option: DropdownOption) => {
-        onChange(option.value);
+        option.onPress?.();
         setIsOpen(false);
     };
 
@@ -73,10 +60,7 @@ export default function Dropdown({
             style={styles.trigger}
             disabled={disabled}
         >
-            <Text style={labelStyle}>{label}</Text>
-            {icon && !disabled && <Animated.View style={{ "transform": [{ "rotate": rotation }] }}>
-                {icon}
-            </Animated.View>}
+            {children}
         </Pressable>
         <Animated.View
             accessibilityElementsHidden={!isOpen}
@@ -90,17 +74,16 @@ export default function Dropdown({
                 },
             ]}
         >
-            <ScrollView showsVerticalScrollIndicator={false}>
-                {options.map((option) => <Pressable
-                    key={String(option.value)}
+            <View style={styles.menuContent}>
+                {options.map((option, index) => <Pressable
+                    key={`${option.label}-${index}`}
                     accessibilityRole="button"
-                    accessibilityState={{ "selected": option.value === value }}
                     onPress={() => selectOption(option)}
-                    style={styles.option}
+                    style={[styles.option, index > 0 && styles.optionDivider]}
                 >
-                    <Text style={option.value === value ? styles.optionLabelSelected : styles.optionLabel }>{option.label}</Text>
+                    <Text style={styles.optionLabel}>{option.label}</Text>
                 </Pressable>)}
-            </ScrollView>
+            </View>
         </Animated.View>
     </View>;
 }
@@ -119,14 +102,12 @@ const styles = StyleSheet.create({
     "menu": {
         "position": "absolute",
         "top": 30,
-        "alignSelf": "center",
-        "width": 82,
-        "maxHeight": 86,
-        "borderRadius": 10,
-        "borderWidth": 0.5,
+        "right": 0,
+        "width": 106.5,
+        "borderRadius": 15,
+        "borderWidth": 0.75,
         "borderColor": "#474747",
         "backgroundColor": "#FEFEFE",
-        "paddingVertical": 4,
         "zIndex": 20,
         "elevation": 4,
         "shadowColor": "#000000",
@@ -134,19 +115,22 @@ const styles = StyleSheet.create({
         "shadowOpacity": 0.25,
         "shadowRadius": 2,
     },
+    "menuContent": {
+        "borderRadius": 15,
+        "overflow": "hidden",
+    },
     "option": {
-        "height": 15,
+        "minHeight": 31.5,
         "alignItems": "center",
         "justifyContent": "center",
     },
+    "optionDivider": {
+        "borderTopWidth": 0.75,
+        "borderTopColor": "#474747",
+    },
     "optionLabel": {
         "fontFamily": "Ownglyph PDH",
-        "fontSize": 10,
-        "color": "#9B9B9B",
-    },
-    "optionLabelSelected": {
-        "fontFamily": "Ownglyph PDH",
-        "fontSize": 13,
+        "fontSize": 16.5,
         "color": "#474747",
     },
 });

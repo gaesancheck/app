@@ -30,6 +30,13 @@ export const userData = {
     async set(data: UserData): Promise<void> {
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     },
+
+    async update<K extends keyof UserData>(key: K, value: UserData[K]): Promise<void> {
+        this.set({
+            ...await this.get(),
+            [key]: value
+        });
+    }
 };
 
 export default userData;
