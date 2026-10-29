@@ -10,7 +10,6 @@ declare global {
     type WalkRecordRate = 5 | 4 | 3 | 2 | 1;
     // 흐림, 구름 조금, 구름 많음, 맑음, 비, 천둥, 눈
     type WalkRecordWeather = "cloudy" | "partly_cloudy" | "mostly_cloudy" | "clear" | "rainy" | "thunder" | "snowy";
-    type Gender = "male" | "female";
 
     interface WalkRecord {
         id: string,
@@ -23,14 +22,6 @@ declare global {
         picture?: string,
         weather?: WalkRecordWeather,
         content: string
-    }
-
-    interface EmergencyInfo {
-        name: string,
-        gender: Gender,
-        age: number,
-        neutered: boolean,
-        characteristics: string
     }
 
     type EmergencyMapRoute = MapCoordinate[];

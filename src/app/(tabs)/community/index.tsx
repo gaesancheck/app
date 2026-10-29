@@ -12,19 +12,7 @@ import SvgBookmarkFilled from '@/assets/svg/bookmark_filled.svg';
 import SvgHeart from '@/assets/svg/heart.svg';
 import SvgComment from '@/assets/svg/comment.svg';
 import SvgPlus from '@/assets/svg/plus.svg';
-
-type Posts = {
-    "id": string,
-    "title": string,
-    "content": string,
-    "hearts": number,
-    "comments": number,
-    "bookmarked": boolean,
-    "attachments": {
-        "id": string,
-        "url": string
-    }[]
-};
+import { APIPost, APIPostCategory } from "@/modules/rest/posts";
 
 function Category({
     enabled,
@@ -56,145 +44,9 @@ export default function Page() {
     const colors = useChooseByScheme(LightColors, DarkColors);
     const styles = getStyles(colors, safeArea);
 
-    const posts: Posts[] = [
-        {
-            "id": "1",
-            "title": "강아지가 이상해요",
-            "content": "강아지가 이상해요. 강아지가 목욕탕을 너무 좋아해요. 장난이 아니라 진짜 바나나우유 들고 아저씨마냥 목욕탕에서 힐링을 해요 ㅜㅜ",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": false,
-            "attachments": [
-                {
-                    "id": "1",
-                    "url": "https://f.ny64.kr/photos/help.jpg"
-                },
-                {
-                    "id": "2",
-                    "url": "https://f.ny64.kr/photos/help.jpg"
-                }
-            ]
-        },
-        {
-            "id": "2",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "3",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "4",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "5",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "6",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "7",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "8",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "9",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "10",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "11",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "12",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "13",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        },
-        {
-            "id": "14",
-            "title": "오늘 방신시장에서",
-            "content": "오늘 방신시장에서 무슨 일 있었나요? 저희 집 강아지가 와서 막 울길래 들어보니까 뽀삐가 왈왈이한테 공개고백했다가 차였다고 하더라고요.. 자세한거 알고계신 분 있으면 댓글로 알려주세요.",
-            "hearts": 12,
-            "comments": 5,
-            "bookmarked": true,
-            "attachments": []
-        }
-    ];
-
-    const [currentCategory, setCurrentCategory] = useState<"popular" | "recent" | "others">("popular");
+    const [posts, setPosts] = useState<APIPost[]>([]);
+    // missing 카테고리는 APIEmergency에서 처리
+    const [currentCategory, setCurrentCategory] = useState<APIPostCategory | "missing">("popular");
 
     return <View style={styles.container}>
         <View style={styles.header}>
@@ -211,6 +63,7 @@ export default function Page() {
         <View style={styles.categories}>
             <Category styles={styles.category} onPress={() => setCurrentCategory("popular")} enabled={currentCategory === "popular"} label="인기" />
             <Category styles={styles.category} onPress={() => setCurrentCategory("recent")} enabled={currentCategory === "recent"} label="최근" />
+            <Category styles={styles.category} onPress={() => setCurrentCategory("missing")} enabled={currentCategory === "missing"} label="실종된 반려동물" />
             <Category styles={styles.category} onPress={() => setCurrentCategory("others")} enabled={currentCategory === "others"} label="그 외 등등" />
         </View>
         <FlatList

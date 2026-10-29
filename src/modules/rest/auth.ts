@@ -1,59 +1,5 @@
-import axios, { AxiosRequestConfig, AxiosResponseHeaders, RawAxiosResponseHeaders } from 'axios';
-import type { NativeOAuthExchangeRequest, OAuthExchangeRequest } from './oauthConfig';
-
-type RESTSuccess<D> = {
-    "success": true,
-} & RESTResponseData<D>;
-
-type RESTFailed<D> = {
-    "success": false
-} & RESTResponseData<APIError>;
-
-type RESTResponseData<D> = {
-    "status": number,
-    "headers": AxiosResponseHeaders | RawAxiosResponseHeaders,
-    "options"?: AxiosRequestConfig,
-    "data": D
-};
-
-type RESTResponse<S, F> = RESTSuccess<S> | RESTFailed<F>;
-
-async function REST<S = any, F = any, D = any>(route: string, config?: AxiosRequestConfig<D>): Promise<RESTResponse<S, F>> {
-    const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
-    if (!baseUrl) {
-        throw new Error("로그인 서버가 아직 설정되지 않았습니다.");
-    }
-
-    const url = new URL(baseUrl);
-    if (
-        (url.protocol !== "https:" && !(__DEV__ && url.protocol === "http:")) ||
-        url.username || url.password || url.search || url.hash
-    ) {
-        throw new Error("로그인 서버 주소 설정을 확인해주세요.");
-    }
-
-    const r = await axios(route, {
-        ...config,
-        baseURL: baseUrl.replace(/\/+$/, ""),
-        "validateStatus": () => true
-    });
-
-    if (Math.floor(r.status / 100) !== 2) {
-        return {
-            "success": false,
-            "headers": r.headers,
-            "status": r.status,
-            "data": r.data
-        };
-    }
-
-    return {
-        "success": true,
-        "headers": r.headers,
-        "status": r.status,
-        "data": r.data
-    };
-}
+import { RESTResponse, REST } from '.';
+import type { NativeOAuthExchangeRequest, OAuthExchangeRequest } from '../oauthConfig';
 
 type POSTAPIAuthLogin = {
     "id": string,
@@ -75,11 +21,18 @@ export type APIAuthSession = {
     "expires_in": number
 };
 
+type POSTAPISignup = {
+    "name": string,
+    "telNo": string,
+    "id": string,
+    "password": string
+};
+
 export const APIAuth = {
     async login(data: POSTAPIAuthLogin): Promise<RESTResponse<APIAuthSession, APIError>> {
         // POST /v1/auth/login
         // Content-Type: application/json
-        // body: POSTAPIAuthLogin
+        // requestBody: POSTAPIAuthLogin
         // status: 200 (APIAuthSession), 401 (invalid credentials)
         await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -106,7 +59,7 @@ export const APIAuth = {
     async findId(data: POSTAPIAuthFindID): Promise<RESTResponse<null, APIError>> {
         // POST /v1/auth/findId
         // Content-Type: application/json
-        // body: POSTAPIAuthFindID
+        // requestBody: POSTAPIAuthFindID
         // status: 204 (no content)
         await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -120,7 +73,7 @@ export const APIAuth = {
     async findPw(data: POSTAPIAuthFindPW): Promise<RESTResponse<null, APIError>> {
         // POST /v1/auth/findPw
         // Content-Type: application/json
-        // body: POSTAPIAuthFindPW
+        // requestBody: POSTAPIAuthFindPW
         // status: 204 (no content)
         await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -134,7 +87,7 @@ export const APIAuth = {
     async authorizeGoogle(data: OAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
         // POST /v1/auth/oauth/google/exchange
         // Content-Type: application/json
-        // body: OAuthExchangeRequest
+        // requestBody: OAuthExchangeRequest
         // status: 200 (APIAuthSession), 400 (invalid request), 401 (invalid/expired code or PKCE), 500 (server error)
         return REST<APIAuthSession, APIError>("/v1/auth/oauth/google/exchange", {
             method: "POST",
@@ -146,7 +99,7 @@ export const APIAuth = {
     async authorizeNaver(data: NativeOAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
         // POST /v1/auth/oauth/naver/exchange
         // Content-Type: application/json
-        // body: NativeOAuthExchangeRequest
+        // requestBody: NativeOAuthExchangeRequest
         // status: 200 (APIAuthSession), 400 (invalid request), 401 (provider token rejected), 500 (server error)
         return REST<APIAuthSession, APIError>("/v1/auth/oauth/naver/exchange", {
             method: "POST",
@@ -158,7 +111,7 @@ export const APIAuth = {
     async authorizeKakao(data: NativeOAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
         // POST /v1/auth/oauth/kakao/exchange
         // Content-Type: application/json
-        // body: NativeOAuthExchangeRequest
+        // requestBody: NativeOAuthExchangeRequest
         // status: 200 (APIAuthSession), 400 (invalid request), 401 (provider token rejected), 500 (server error)
         return REST<APIAuthSession, APIError>("/v1/auth/oauth/kakao/exchange", {
             method: "POST",
@@ -166,5 +119,21 @@ export const APIAuth = {
             data,
             timeout: 15000,
         });
+    },
+    async signUp(data: POSTAPISignup): Promise<RESTResponse<APIAuthSession, APIError>> {
+        // POST /v1/auth/signup
+        // Content-Type: application/json
+        // requestBody: POSTAPISignup
+        // status: 200 (APIAuthSession), 400 (invalid request), and more
+
+        return {
+            "status": 204,
+            "success": true,
+            "headers": {},
+            "data": {
+                "access_token": "access_token",
+                "expires_in": 604800
+            }
+        };
     }
 };
