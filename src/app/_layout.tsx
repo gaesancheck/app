@@ -22,23 +22,93 @@ export default function RootLayout() {
                     "callback": async () => {
                         await userData.set({
                             "loggedIn": true,
-                            "walkRecords": [{
-                                "id": "",
-                                "date": dayjs().format("YYYYMMDD"),
-                                "rate": 5,
-                                "routes": [{
-                                    "latitude": 37.553881,
-                                    "longitude": 126.970488
-                                }, {
-                                    "latitude": 36.7922,
-                                    "longitude": 127.1046
-                                }],
-                                "duration": 2400,
-                                "distance": 415,
-                                "destination": "아산역",
-                                "weather": "cloudy",
-                                "content": "오늘은 우리집 갱얼쥐를 대리고 아산역으로 산책을 갔다. 80km를 넘게 다니니까 평생 할 산책 오늘 한 번에 다한 것 같았다. 다음에는 용산역까지만 가야겠다.",
-                            }]
+                            "walkRecords": [
+                                {
+                                    "id": Math.random().toString(),
+                                    "date": dayjs().format("YYYYMMDD"),
+                                    "rate": 5,
+                                    "routes": [{
+                                        "latitude": 37.553881,
+                                        "longitude": 126.970488
+                                    }, {
+                                        "latitude": 36.7922,
+                                        "longitude": 127.1046
+                                    }],
+                                    "duration": 2400,
+                                    "distance": 415,
+                                    "destination": "아산역",
+                                    "weather": "cloudy",
+                                    "content": "오늘은 우리집 갱얼쥐를 대리고 아산역으로 산책을 갔다. 80km를 넘게 다니니까 평생 할 산책 오늘 한 번에 다한 것 같았다. 다음에는 용산역까지만 가야겠다.",
+                                },
+                                {
+                                    "id": Math.random().toString(),
+                                    "date": dayjs().subtract(1, "month").format("YYYYMMDD"),
+                                    "rate": 4,
+                                    "routes": [{
+                                        "latitude": 37.553881,
+                                        "longitude": 126.970488
+                                    }, {
+                                        "latitude": 36.7922,
+                                        "longitude": 127.1046
+                                    }],
+                                    "duration": 2400,
+                                    "distance": 415,
+                                    "destination": "아산역",
+                                    "weather": "cloudy",
+                                    "content": "오늘은 우리집 갱얼쥐를 대리고 아산역으로 산책을 갔다. 80km를 넘게 다니니까 평생 할 산책 오늘 한 번에 다한 것 같았다. 다음에는 용산역까지만 가야겠다.",
+                                },
+                                {
+                                    "id": Math.random().toString(),
+                                    "date": dayjs().subtract(2, "month").format("YYYYMMDD"),
+                                    "rate": 3,
+                                    "routes": [{
+                                        "latitude": 37.553881,
+                                        "longitude": 126.970488
+                                    }, {
+                                        "latitude": 36.7922,
+                                        "longitude": 127.1046
+                                    }],
+                                    "duration": 2400,
+                                    "distance": 415,
+                                    "destination": "아산역",
+                                    "weather": "cloudy",
+                                    "content": "오늘은 우리집 갱얼쥐를 대리고 아산역으로 산책을 갔다. 80km를 넘게 다니니까 평생 할 산책 오늘 한 번에 다한 것 같았다. 다음에는 용산역까지만 가야겠다.",
+                                },
+                                {
+                                    "id": Math.random().toString(),
+                                    "date": dayjs().add(1, "month").format("YYYYMMDD"),
+                                    "rate": 2,
+                                    "routes": [{
+                                        "latitude": 37.553881,
+                                        "longitude": 126.970488
+                                    }, {
+                                        "latitude": 36.7922,
+                                        "longitude": 127.1046
+                                    }],
+                                    "duration": 2400,
+                                    "distance": 415,
+                                    "destination": "아산역",
+                                    "weather": "cloudy",
+                                    "content": "오늘은 우리집 갱얼쥐를 대리고 아산역으로 산책을 갔다. 80km를 넘게 다니니까 평생 할 산책 오늘 한 번에 다한 것 같았다. 다음에는 용산역까지만 가야겠다.",
+                                },
+                                {
+                                    "id": Math.random().toString(),
+                                    "date": dayjs().add(2, "month").format("YYYYMMDD"),
+                                    "rate": 1,
+                                    "routes": [{
+                                        "latitude": 37.553881,
+                                        "longitude": 126.970488
+                                    }, {
+                                        "latitude": 36.7922,
+                                        "longitude": 127.1046
+                                    }],
+                                    "duration": 2400,
+                                    "distance": 415,
+                                    "destination": "아산역",
+                                    "weather": "cloudy",
+                                    "content": "오늘은 우리집 갱얼쥐를 대리고 아산역으로 산책을 갔다. 80km를 넘게 다니니까 평생 할 산책 오늘 한 번에 다한 것 같았다. 다음에는 용산역까지만 가야겠다.",
+                                }
+                            ]
                         });
 
                         await Expo.reloadAppAsync("Saved example data from DevClient");

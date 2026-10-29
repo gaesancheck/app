@@ -11,6 +11,7 @@ import { useState, useCallback } from "react";
 import SvgCalendar from '@/assets/svg/calendar.svg';
 import SvgList from '@/assets/svg/list.svg';
 import SvgChevronDown from "@/assets/svg/chevronDown.svg";
+import SmallDiary from "@/components/SmallDiary";
 
 export default function Page() {
     const safeArea = useSafeAreaInsets();
@@ -54,7 +55,7 @@ export default function Page() {
             options={[...new Set(data.walkRecords.map(v => dayjs(v.date, "YYYYMMDD")).map(v => ({
                 "label": `${v.year()}년 ${v.month() + 1}월`,
                 "value": `${v.year()}-${v.month() + 1}`
-            })))]}
+            })))].sort((a, b) => Number(a.value.replace("-", "")) - Number(b.value.replace("-", "")))}
             onChange={(value) => {
                 const [year, month] = (value as string).split("-");
                 setCurrentYear(Number(year));
@@ -66,7 +67,10 @@ export default function Page() {
             {data.walkRecords.length > 0 && <SvgChevronDown width={11} height={6} />}
         </SelectionDropdown>
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-
+            {data.walkRecords.map(v => <SmallDiary
+                key={v.id}
+                data={v}
+            />)}
         </ScrollView>
     </View>;
 }
@@ -98,9 +102,12 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     },
     "scrollView": {
         "flex": 1,
+        "marginTop": 12,
+        "paddingTop": 36
     },
     "content": {
         "paddingBottom": 20,
+        "gap": 10
     },
     "monthTitle": {
         "flexDirection": "row",

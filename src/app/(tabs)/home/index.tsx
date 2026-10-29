@@ -99,24 +99,25 @@ export default function Page() {
                     </Dropdown>
                 </View>
             </View>
+            <SelectionDropdown
+                disabled={data.walkRecords.length === 0}
+                value={`${currentYear}-${currentMonth + 1}`}
+                options={[...new Set(data.walkRecords.map(v => dayjs(v.date, "YYYYMMDD")).map(v => ({
+                    "label": `${v.year()}년 ${v.month() + 1}월`,
+                    "value": `${v.year()}-${v.month() + 1}`
+                })))].sort((a, b) => Number(a.value.replace("-", "")) - Number(b.value.replace("-", "")))}
+                onChange={(value) => {
+                    const [year, month] = (value as string).split("-");
+                    setDiary(undefined);
+                    setCurrentYear(Number(year));
+                    setCurrentMonth(Number(month) - 1);
+                }}
+                containerStyle={styles.monthTitle}
+            >
+                <Text style={styles.monthText}>{currentYear}년 {currentMonth + 1}월</Text>
+                {data.walkRecords.length > 0 && <SvgChevronDown width={11} height={6} />}
+            </SelectionDropdown>
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-                <SelectionDropdown
-                    disabled={data.walkRecords.length === 0}
-                    value={`${currentYear}-${currentMonth + 1}`}
-                    options={[...new Set(data.walkRecords.map(v => dayjs(v.date, "YYYYMMDD")).map(v => ({
-                        "label": `${v.year()}년 ${v.month() + 1}월`,
-                        "value": `${v.year()}-${v.month() + 1}`
-                    })))]}
-                    onChange={(value) => {
-                        const [year, month] = (value as string).split("-");
-                        setCurrentYear(Number(year));
-                        setCurrentMonth(Number(month) - 1);
-                    }}
-                    containerStyle={styles.monthTitle}
-                >
-                    <Text style={styles.monthText}>{currentYear}년 {currentMonth + 1}월</Text>
-                    {data.walkRecords.length > 0 && <SvgChevronDown width={11} height={6} />}
-                </SelectionDropdown>
                 <View style={styles.calendar}>
                     <View style={styles.weekdays}>
                         {WEEKDAYS.map((weekday) => <Text key={weekday} style={styles.weekday}>{weekday}</Text>)}
