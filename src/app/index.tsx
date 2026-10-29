@@ -1,13 +1,15 @@
 import { View, StyleSheet, Dimensions, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors, DarkColors, LightColors } from "../../app.config";
-import Footstep from "@/assets/svg/balzaguk.svg";
 import { useEffect } from "react";
 import { router } from "expo-router";
 import useChooseByScheme from "@/modules/useChooseByScheme";
 import * as DevTools from 'expo-dev-client';
 import userData from "@/modules/userData";
 import * as Expo from 'expo';
+import dayjs from "dayjs";
+
+import Footstep from "@/assets/svg/balzaguk.svg";
 
 export default function Loading() {
     const safeArea = useSafeAreaInsets();
@@ -23,7 +25,7 @@ export default function Loading() {
                         "loggedIn": true,
                         "walkRecords": [{
                             "id": "",
-                            "date": "",
+                            "date": dayjs().format("YYYYMMDD"),
                             "rate": 5,
                             "routes": [{
                                 "latitude": 37.553881,

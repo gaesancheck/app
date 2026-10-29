@@ -3,7 +3,7 @@ import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors, DarkColors, LightColors } from "../../../../app.config";
 import useChooseByScheme from "@/modules/useChooseByScheme";
 import { router } from "expo-router";
-import * as Haptics from 'expo-haptics';
+import { haptics } from "@/modules/haptics";
 
 import SvgBack from '@/assets/svg/back.svg';
 
@@ -15,7 +15,7 @@ export default function Page() {
     return <View style={styles.container}>
         <View style={styles.header}>
             <TouchableOpacity style={styles.headerBack} hitSlop={7} onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                haptics.light();
                 router.back();
             }}>
                 <SvgBack width={15} height={15} />

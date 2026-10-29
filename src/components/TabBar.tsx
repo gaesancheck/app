@@ -3,6 +3,8 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { Colors, DarkColors, LightColors } from "../../app.config";
 import { Tabs } from "expo-router";
+import useChooseByScheme from "@/modules/useChooseByScheme";
+import { haptics } from "@/modules/haptics";
 
 import SvgHome from "@/assets/svg/tabbar/home.svg";
 import SvgSelectedHome from "@/assets/svg/tabbar/selectedHome.svg";
@@ -10,7 +12,6 @@ import SvgCalendar from "@/assets/svg/tabbar/calendar.svg";
 import SvgSiren from "@/assets/svg/tabbar/siren.svg";
 import SvgMessageBox from "@/assets/svg/tabbar/messageBox.svg";
 import SvgUser from "@/assets/svg/tabbar/user.svg";
-import useChooseByScheme from "@/modules/useChooseByScheme";
 
 const names = {
     "home": ["홈", SvgHome] as const,
@@ -44,7 +45,7 @@ export default function TabBar({ state, emitter, navigateToTab, insets }: TabBar
                     hitSlop={15}
                     style={styles.tabbarItem}
                     onPress={() => {
-                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        haptics.light();
                         const event = emitter.emit({
                             type: "tabPress",
                             target: route.key,

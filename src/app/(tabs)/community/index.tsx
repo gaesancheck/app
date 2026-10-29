@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { Colors, LightColors, DarkColors } from "../../../../app.config";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import useChooseByScheme from "@/modules/useChooseByScheme";
+import { haptics } from "@/modules/haptics";
 
 import SvgSearch from '@/assets/svg/search.svg';
 import SvgBookmark from '@/assets/svg/bookmark.svg';
@@ -40,7 +41,7 @@ function Category({
     return <TouchableOpacity style={[styles, {
         "backgroundColor": enabled ? "#474747" : "#E2E2E2"
     }]} disabled={enabled} onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        haptics.light();
         onPress?.();
     }}>
         <Text style={{
@@ -242,7 +243,7 @@ export default function Page() {
                         <Text style={styles.postStatusText}>{item.comments}</Text>
                     </View>
                     <TouchableOpacity style={styles.bookmark} hitSlop={7} onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        haptics.light();
 
                         // bookmark
                     }}>

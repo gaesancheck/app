@@ -7,7 +7,7 @@ export type UserData = {
 
 const STORAGE_KEY = "userData";
 
-const DEFAULT: UserData = {
+export const SAVE_DEFAULT: UserData = {
     "loggedIn": false,
     "walkRecords": []
 }
@@ -15,7 +15,7 @@ const DEFAULT: UserData = {
 export const userData = {
     async get(): Promise<UserData> {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored === null) return DEFAULT;
+        if (stored === null) return SAVE_DEFAULT;
 
         try {
             const data: unknown = JSON.parse(stored);
@@ -24,7 +24,7 @@ export const userData = {
             // Invalid saved data falls back to the logged-out state.
         }
 
-        return DEFAULT;
+        return SAVE_DEFAULT;
     },
 
     async set(data: UserData): Promise<void> {

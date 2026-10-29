@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { router } from "expo-router";
 import * as ImagePicker from 'expo-image-picker';
 import useChooseByScheme from "@/modules/useChooseByScheme";
+import { haptics } from "@/modules/haptics";
 
 import SvgBack from '@/assets/svg/back.svg';
 import SvgCamera from '@/assets/svg/camera.svg';
@@ -43,7 +44,7 @@ export default function Page() {
     return <View style={styles.container}>
         <View style={styles.header}>
             <TouchableOpacity style={styles.headerBack} hitSlop={7} onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                haptics.light();
                 router.back();
             }}>
                 <SvgBack width={15} height={15} />
@@ -88,7 +89,7 @@ export default function Page() {
                 <Text style={styles.sectionText}>사진 첨부</Text>
                 {pictures.length > 0 ? <View style={styles.pictures}>
                     {pictures.map(v => <Pressable key={v.assetId} onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        haptics.light();
                         setPictures(a => a.filter(b => b.assetId !== v.assetId));
                     }}>
                         <Image

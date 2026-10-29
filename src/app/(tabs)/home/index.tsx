@@ -1,11 +1,13 @@
 import { useCallback, useState } from "react";
-import { Platform, View, StyleSheet, TouchableOpacity, Pressable, ScrollView, Image, Text } from "react-native";
+import { Platform, View, StyleSheet, TouchableOpacity, ScrollView, Text, Pressable } from "react-native";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors, DarkColors, LightColors } from "@/../app.config";
 import useChooseByScheme from "@/modules/useChooseByScheme";
-import { useFocusEffect } from "expo-router";
-import Svg, { Circle } from "react-native-svg";
-import userData from "@/modules/userData";
+import { router, useFocusEffect } from "expo-router";
+import userData, { SAVE_DEFAULT, UserData } from "@/modules/userData";
+import dayjs from 'dayjs';
+import Dropdown from "@/components/Dropdown";
+import { haptics } from "@/modules/haptics";
 
 import SvgSearch from '@/assets/svg/search.svg';
 import SvgList from '@/assets/svg/list.svg';
@@ -17,60 +19,34 @@ import SvgSad from "@/assets/svg/dogs/sad.svg";
 import SvgAngry from "@/assets/svg/dogs/angry.svg";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
-const DOGS = { "5": SvgVeryGood, "4": SvgGood, "3": SvgNormal, "2": SvgSad, "1": SvgAngry };
+const DOGS = { 5: SvgVeryGood, 4: SvgGood, 3: SvgNormal, 2: SvgSad, 1: SvgAngry };
 const WEATHER = {
     "cloudy": "☁️", "partly_cloudy": "🌤️", "mostly_cloudy": "⛅️",
     "clear": "☀️", "rainy": "🌧️", "thunder": "⛈️", "snowy": "❄️",
 };
 
-function dateKey(date: Date) {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function parseDate(value: string) {
-    return new Date(value.length === 10 ? `${value}T00:00:00` : value);
-}
-
 export default function Page() {
     const safeArea = useSafeAreaInsets();
     const colors = useChooseByScheme(LightColors, DarkColors);
     const styles = getStyles(colors, safeArea);
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const today = dateKey(now);
-    const firstWeekday = new Date(year, month, 1).getDay();
-    const dayCount = new Date(year, month + 1, 0).getDate();
+    const now = dayjs();
+
+    const [currentYear, setCurrentYear] = useState(now.year());
+    const [currentMonth, setCurrentMonth] = useState(now.month());
+
+    const firstWeekday = new Date(currentYear, currentMonth, 1).getDay();
+    const dayCount = new Date(currentYear, currentMonth + 1, 0).getDate();
     const cellCount = Math.ceil((firstWeekday + dayCount) / 7) * 7;
-    const [selectedDate, setSelectedDate] = useState(today);
-    const [records, setRecords] = useState<WalkRecord[]>([]);
-    const [loadError, setLoadError] = useState(false);
 
-    useFocusEffect(useCallback(() => {
-        let active = true;
-        setLoadError(false);
-        userData.get().then((data) => {
-            if (active) setRecords(Array.isArray(data.walkRecords) ? data.walkRecords : []);
-        }).catch(() => {
-            if (active) {
-                setRecords([]);
-                setLoadError(true);
-            }
-        });
-        return () => { active = false; };
-    }, []));
+    const [data, setData] = useState<UserData>(SAVE_DEFAULT);
 
-    const recordsByDate = new Map<string, WalkRecord[]>();
-    for (const record of records) {
-        const date = parseDate(record.date);
-        if (Number.isNaN(date.getTime())) continue;
-        const key = dateKey(date);
-        const entries = recordsByDate.get(key) ?? [];
-        entries.push(record);
-        recordsByDate.set(key, entries);
-    }
-    const selectedRecords = recordsByDate.get(selectedDate) ?? [];
-    const selected = parseDate(selectedDate);
+    useFocusEffect(
+        useCallback(() => {
+            (async () => {
+                setData(await userData.get());
+            })();
+        }, [])
+    );
 
     return <View style={styles.container}>
         <View style={styles.header}>
@@ -85,60 +61,57 @@ export default function Page() {
             </View>
         </View>
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            <View style={styles.monthTitle}>
-                <Text style={styles.monthText}>{year}년 {month + 1}월</Text>
-                <SvgChevronDown width={11} height={6} />
-            </View>
+            <Dropdown
+                disabled={data.walkRecords.length === 0}
+                label={`${currentYear}년 ${currentMonth + 1}월`}
+                value={currentMonth}
+                options={[...new Set(data.walkRecords.map(v => dayjs(v.date, "YYYYMMDD")).map(v => ({
+                    "label": `${v.year()}년 ${v.month() + 1}월`,
+                    "value": `${v.year()}-${v.month() + 1}`
+                })))]}
+                onChange={(value) => {
+                    const [year, month] = (value as string).split("-");
+                    setCurrentYear(Number(year));
+                    setCurrentMonth(Number(month) - 1);
+                }}
+                icon={<SvgChevronDown width={11} height={6} />}
+                containerStyle={styles.monthTitle}
+                labelStyle={styles.monthText}
+            />
             <View style={styles.calendar}>
                 <View style={styles.weekdays}>
                     {WEEKDAYS.map((weekday) => <Text key={weekday} style={styles.weekday}>{weekday}</Text>)}
                 </View>
                 <View style={styles.grid}>
-                    {Array.from({ "length": cellCount }, (_, index) => {
-                        const day = index - firstWeekday + 1;
-                        if (day < 1 || day > dayCount) return <View key={`blank-${index}`} style={styles.dayCell} />;
-                        const key = dateKey(new Date(year, month, day));
-                        const isToday = key === today;
-                        const record = recordsByDate.get(key)?.[0];
-                        const Dog = record ? DOGS[record.rate] ?? SvgNormal : null;
-                        return <Pressable
-                            key={key}
+                    {Array.from({ "length": cellCount }, (_, i) => {
+                        const day = i - firstWeekday + 1;
+                        const isOutsideMonth = day < 1 || day > dayCount;
+                        const isToday = day === now.date();
+
+                        if (isOutsideMonth) return <View key={`calendar-${i}`} style={styles.dayCell} />
+
+                        const diary = data.walkRecords.find(v => dayjs()
+                            .set('year', currentYear)
+                            .set('month', currentMonth)
+                            .set('date', day).format("YYYYMMDD") === v.date
+                        );
+                        const Dog = diary ? DOGS[diary.rate] ?? SvgNormal : null;
+
+                        return <View
+                            key={`calendar-${i}`}
                             style={styles.dayCell}
-                            accessibilityRole="button"
-                            accessibilityLabel={`${month + 1}월 ${day}일${record ? ", 산책 기록 있음" : ""}${isToday ? ", 오늘" : ""}`}
-                            accessibilityState={{ "selected": selectedDate === key }}
-                            onPress={() => setSelectedDate(key)}
                         >
-                            <Text style={styles.dayNumber}>{day}</Text>
-                            <View style={styles.dayCircle}>
-                                <Svg width={43} height={43} viewBox="0 0 43 43" style={styles.circleBackground}>
-                                    <Circle
-                                        cx={21.5} cy={21.5} r={20.85}
-                                        fill={isToday ? "#668C6C" : "#E7E9E0"}
-                                        fillOpacity={isToday ? 0.2 : 0.7}
-                                        stroke={isToday ? "#688F6E" : "#9A9A9A"}
-                                        strokeWidth={1.3}
-                                        strokeDasharray={isToday ? undefined : "2 2"}
-                                    />
-                                </Svg>
-                                {Dog && <Dog width={36} height={35} />}
-                            </View>
-                        </Pressable>;
+                            <Text style={styles.dayNumber}>{isOutsideMonth ? "" : day}</Text>
+                            {!diary ? <Pressable
+                                style={isToday ? styles.dayCircleActive : styles.dayCircleInactive}
+                                onClick={() => { haptics.light(); router.push("/(tabs)/home/write"); }}
+                            /> : <Pressable>
+                                {Dog && <Dog />}
+                            </Pressable>}
+                        </View>;
                     })}
                 </View>
             </View>
-            {selectedRecords.length ? selectedRecords.map((record) => <View key={record.id} style={styles.summaryCard}>
-                <View style={styles.summaryHeader}>
-                    {record.picture && <Image source={{ "uri": record.picture }} style={styles.summaryPhoto} accessibilityLabel="산책 사진" />}
-                    <View style={styles.summaryDetails}>
-                        <Text style={styles.summaryDate}>{String(year).slice(-2)}년 {selected.getMonth() + 1}월 {selected.getDate()}일 {WEEKDAYS[selected.getDay()]}요일</Text>
-                        {record.weather && <Text style={styles.weather}>{WEATHER[record.weather]}</Text>}
-                    </View>
-                </View>
-                <Text style={styles.summaryText}>{record.content}</Text>
-            </View>) : <View style={styles.emptySummary}>
-                <Text style={styles.emptyText}>{loadError ? "산책 기록을 불러오지 못했어요." : "작성한 산책 기록이 없어요."}</Text>
-            </View>}
         </ScrollView>
     </View>;
 }
@@ -152,31 +125,48 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
         "paddingLeft": safeArea.left,
         "paddingRight": safeArea.right,
     },
-    "scrollView": { "flex": 1 },
-    "content": { "paddingBottom": 20 },
-    "monthTitle": { "flexDirection": "row", "alignItems": "center", "justifyContent": "center", "gap": 9, "marginTop": 23 },
-    "monthText": { "fontFamily": "ParkDaHyeon", "fontSize": 18, "color": "#474747" },
-    "calendar": { "marginHorizontal": 16, "marginTop": 26 },
-    "weekdays": { "flexDirection": "row", "height": 20 },
-    "weekday": { "width": `${100 / 7}%`, "textAlign": "center", "fontFamily": "ParkDaHyeon", "fontSize": 18, "color": "#474747" },
-    "grid": { "flexDirection": "row", "flexWrap": "wrap", "marginTop": 22 },
-    "dayCell": { "width": `${100 / 7}%`, "height": 78, "alignItems": "center" },
-    "dayNumber": { "height": 19, "fontFamily": "ParkDaHyeon", "fontSize": 12, "color": "#858780", "textAlign": "center" },
-    "dayCircle": { "width": 43, "height": 43, "alignItems": "center", "justifyContent": "center" },
-    "circleBackground": { "position": "absolute", "top": 0, "left": 0 },
-    "summaryCard": { "marginHorizontal": 19, "marginTop": 12, "minHeight": 197, "padding": 16, "borderRadius": 12, "backgroundColor": "#FAFBF7", "borderWidth": 0.7, "borderColor": "#9A9A9A" },
-    "summaryHeader": { "flexDirection": "row", "gap": 10, "marginBottom": 10 },
-    "summaryPhoto": { "width": 85, "height": 85, "borderRadius": 12 },
-    "summaryDetails": { "flex": 1, "gap": 16 },
-    "summaryDate": { "fontFamily": "ParkDaHyeon", "fontSize": 14, "color": "#252525" },
-    "weather": { "fontSize": 20 },
-    "summaryText": { "fontFamily": "ParkDaHyeon", "fontSize": 16, "lineHeight": 25, "color": "#474747" },
-    "emptySummary": { "marginHorizontal": 16, "minHeight": 150, "borderRadius": 12, "backgroundColor": "#ECEEE6", "borderWidth": 0.7, "borderColor": "#9A9A9A", "justifyContent": "center", "alignItems": "center" },
-    "emptyText": { "fontFamily": "ParkDaHyeon", "fontSize": 16, "color": "#858780" },
+    "scrollView": {
+        "flex": 1,
+    },
+    "content": {
+        "paddingBottom": 20,
+    },
+    "monthTitle": {
+        "flexDirection": "row",
+        "alignItems": "center",
+        "justifyContent": "center",
+        "gap": 9,
+        "marginTop": 23,
+    },
+    "monthText": {
+        "fontFamily": "ParkDaHyeon",
+        "fontSize": 18,
+        "color": "#474747",
+    },
+    "calendar": {
+        "marginHorizontal": 16,
+        "marginTop": 26,
+    },
+    "weekdays": {
+        "flexDirection": "row",
+        "height": 20,
+    },
+    "weekday": {
+        "width": `${100 / 7}%`,
+        "textAlign": "center",
+        "fontFamily": "ParkDaHyeon",
+        "fontSize": 18,
+        "color": "#474747",
+    },
+    "grid": {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "marginTop": 22
+    },
     "header": {
         "flexDirection": "row",
         "justifyContent": "space-between",
-        "paddingHorizontal": 32
+        "paddingHorizontal": 32,
     },
     "headerText": {
         "fontFamily": "ParkDaHyeon",
@@ -187,5 +177,38 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
         "flexDirection": "row",
         "gap": 19,
         "alignItems": "center"
+    },
+    "dayCell": {
+        "width": `${100 / 7}%`,
+        "height": 60,
+        "alignItems": "center",
+        "flexDirection": "column",
+        "gap": 4,
+        "marginBottom": 18
+    },
+    "dayNumber": {
+        "width": "100%",
+        "textAlign": "center",
+        "fontFamily": "ParkDaHyeon",
+        "fontSize": 12,
+        "color": "#858681",
+    },
+    "dayCircleInactive": {
+        "width": 43,
+        "height": 43,
+        "borderRadius": 22.5,
+        "backgroundColor": "#E7E9E0",
+        "borderColor": "#9A9A9A",
+        "borderWidth": 1.3,
+        "borderStyle": "dashed"
+    },
+    "dayCircleActive": {
+        "width": 43,
+        "height": 43,
+        "borderRadius": 22.5,
+        "backgroundColor": "rgba(102, 140, 108, 0.25)",
+        "borderColor": "#688F6E",
+        "borderWidth": 1.3,
+        "borderStyle": "solid"
     }
 });

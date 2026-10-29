@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import useChooseByScheme from "@/modules/useChooseByScheme";
 import { Colors, DarkColors, LightColors } from "@/../app.config";
+
 import SvgCheck from '@/assets/svg/check.svg';
 
 type Props = {
