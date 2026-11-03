@@ -23,7 +23,7 @@ enum SocialLoginConfiguration {
     let secret = value("PawStepNaverClientSecret")
     let scheme = value("PawStepNaverUrlScheme")
     if !naverInitialized && !clientId.isEmpty && !secret.isEmpty && !scheme.isEmpty {
-      NidOAuth.shared.initialize(appName: "PawStep", clientId: clientId,
+      NidOAuth.shared.initialize(appName: "개산책", clientId: clientId,
         clientSecret: secret, urlScheme: scheme)
       NidOAuth.shared.setLoginBehavior(.appPreferredWithInAppBrowserFallback)
       naverInitialized = true

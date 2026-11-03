@@ -114,7 +114,7 @@ class SocialLoginModule : Module() {
       fail(id, "ERR_NAVER_CONFIG", "NAVER_CID와 NAVER_CLIENT_SECRET을 설정하고 앱을 다시 빌드해주세요.")
       return
     }
-    NidOAuth.initialize(activity.applicationContext, clientId, secret, "PawStep",
+    NidOAuth.initialize(activity.applicationContext, clientId, secret, "개산책",
       object : NidOAuthInitializingCallback {
         override fun onSuccess() {
           main.post {

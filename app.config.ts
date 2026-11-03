@@ -41,7 +41,7 @@ export const DarkColors = {
 };
 
 const config: ExpoConfig = {
-    "name": "PawStep",
+    "name": "개산책",
     "slug": "pawstep",
     "version": "1.0.0",
     "orientation": "portrait",
