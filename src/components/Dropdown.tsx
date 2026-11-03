@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
     Animated,
     Pressable,
     StyleSheet,
     Text,
+    TouchableOpacity,
     View,
 } from "react-native";
-import type { StyleProp, ViewStyle } from "react-native";
+import type { PressableProps, StyleProp, ViewStyle } from "react-native";
+import DropdownMenu from "./DropdownMenu";
 
 export type DropdownOption = {
     label: string;
@@ -18,16 +20,21 @@ type DropdownProps = {
     children: ReactNode;
     options: DropdownOption[];
     containerStyle?: StyleProp<ViewStyle>;
-    disabled?: boolean
+    disabled?: boolean;
+    hitSlop?: PressableProps["hitSlop"];
+    viewType?: "pressable" | "touchableopacity";
 };
 
 export default function Dropdown({
     children,
     options,
     containerStyle,
-    disabled
+    disabled,
+    hitSlop,
+    viewType = "pressable",
 }: DropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const anchorRef = useRef<View>(null);
     const progress = useRef(new Animated.Value(0)).current;
     const opacity = progress;
     const scale = progress.interpolate({
@@ -39,52 +46,70 @@ export default function Dropdown({
         outputRange: [-4, 0],
     });
 
-    useEffect(() => {
-        Animated.timing(progress, {
-            toValue: isOpen ? 1 : 0,
-            duration: 180,
-            useNativeDriver: true,
-        }).start();
-    }, [isOpen, progress]);
-
     const selectOption = (option: DropdownOption) => {
         option.onPress?.();
         setIsOpen(false);
     };
 
-    return <View style={[styles.container, containerStyle]}>
+    const trigger = viewType === "touchableopacity" ? (
+        <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityState={{ "expanded": isOpen }}
+            onPress={() => setIsOpen((open) => !open)}
+            hitSlop={hitSlop}
+            style={styles.trigger}
+            disabled={disabled}
+        >
+            {children}
+        </TouchableOpacity>
+    ) : (
         <Pressable
             accessibilityRole="button"
             accessibilityState={{ "expanded": isOpen }}
             onPress={() => setIsOpen((open) => !open)}
+            hitSlop={hitSlop}
             style={styles.trigger}
             disabled={disabled}
         >
             {children}
         </Pressable>
-        <Animated.View
-            accessibilityElementsHidden={!isOpen}
-            importantForAccessibility={isOpen ? "auto" : "no-hide-descendants"}
-            pointerEvents={isOpen ? "auto" : "none"}
-            style={[
-                styles.menu,
-                {
-                    "opacity": opacity,
-                    "transform": [{ "translateY": translateY }, { "scaleY": scale }],
-                },
-            ]}
+    );
+
+    return <View ref={anchorRef} collapsable={false} style={[styles.container, containerStyle]}>
+        {trigger}
+        <DropdownMenu
+            anchorRef={anchorRef}
+            visible={isOpen}
+            progress={progress}
+            width={106.5}
+            gap={15}
+            align="right"
+            onClose={() => setIsOpen(false)}
         >
-            <View style={styles.menuContent}>
-                {options.map((option, index) => <Pressable
-                    key={`${option.label}-${index}`}
-                    accessibilityRole="button"
-                    onPress={() => selectOption(option)}
-                    style={[styles.option, index > 0 && styles.optionDivider]}
-                >
-                    <Text style={styles.optionLabel}>{option.label}</Text>
-                </Pressable>)}
-            </View>
-        </Animated.View>
+            <Animated.View
+                accessibilityElementsHidden={!isOpen}
+                importantForAccessibility={isOpen ? "auto" : "no-hide-descendants"}
+                pointerEvents={isOpen ? "auto" : "none"}
+                style={[
+                    styles.menu,
+                    {
+                        "opacity": opacity,
+                        "transform": [{ "translateY": translateY }, { "scaleY": scale }],
+                    },
+                ]}
+            >
+                <View style={styles.menuContent}>
+                    {options.map((option, index) => <Pressable
+                        key={`${option.label}-${index}`}
+                        accessibilityRole="button"
+                        onPress={() => selectOption(option)}
+                        style={[styles.option, index > 0 && styles.optionDivider]}
+                    >
+                        <Text style={styles.optionLabel}>{option.label}</Text>
+                    </Pressable>)}
+                </View>
+            </Animated.View>
+        </DropdownMenu>
     </View>;
 }
 
@@ -100,9 +125,6 @@ const styles = StyleSheet.create({
         "gap": 9,
     },
     "menu": {
-        "position": "absolute",
-        "top": 30,
-        "right": 0,
         "width": 106.5,
         "borderRadius": 15,
         "borderWidth": 0.75,

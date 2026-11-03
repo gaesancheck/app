@@ -12,6 +12,7 @@ import SvgCalendar from '@/assets/svg/calendar.svg';
 import SvgList from '@/assets/svg/list.svg';
 import SvgChevronDown from "@/assets/svg/chevronDown.svg";
 import SmallDiary from "@/components/SmallDiary";
+import Dropdown from "@/components/Dropdown";
 
 export default function Page() {
     const safeArea = useSafeAreaInsets();
@@ -28,6 +29,7 @@ export default function Page() {
 
     const [data, setData] = useState<UserData>(SAVE_DEFAULT);
     const [diary, setDiary] = useState<WalkRecord>();
+    const [isDeletingMode, setIsDeletingMode] = useState(false);
 
     useFocusEffect(
         useCallback(() => {
@@ -44,18 +46,31 @@ export default function Page() {
                 <TouchableOpacity hitSlop={7} onPress={() => router.replace("/(tabs)/home")}>
                     <SvgCalendar width={15} height={15} />
                 </TouchableOpacity>
-                <TouchableOpacity hitSlop={7}>
+                <Dropdown
+                    viewType="touchableopacity"
+                    hitSlop={7}
+                    options={[
+                        { "label": "검색하기", "onPress": () => router.push("/(tabs)/home/search") },
+                        (isDeletingMode ? {
+                            "label": "삭제 취소",
+                            "onPress": () => setIsDeletingMode(false)
+                        } : {
+                            "label": "일기 삭제",
+                            "onPress": () => setIsDeletingMode(true)
+                        }),
+                    ]}
+                >
                     <SvgList width={15} height={15} />
-                </TouchableOpacity>
+                </Dropdown>
             </View>
         </View>
         <SelectionDropdown
             disabled={data.walkRecords.length === 0}
             value={`${currentYear}-${currentMonth + 1}`}
-            options={[...new Set(data.walkRecords.map(v => dayjs(v.date, "YYYYMMDD")).map(v => ({
-                "label": `${v.year()}년 ${v.month() + 1}월`,
-                "value": `${v.year()}-${v.month() + 1}`
-            })))].sort((a, b) => Number(a.value.replace("-", "")) - Number(b.value.replace("-", "")))}
+            options={[...new Set(data.walkRecords.map(v => dayjs(v.date, "YYYYMMDD").format("YYYY-MM")))].sort().map(month => ({
+                "label": dayjs(month).format("YYYY년 M월"),
+                "value": dayjs(month).format("YYYY-M"),
+            }))}
             onChange={(value) => {
                 const [year, month] = (value as string).split("-");
                 setCurrentYear(Number(year));
@@ -66,12 +81,30 @@ export default function Page() {
             <Text style={styles.monthText}>{currentYear}년 {currentMonth + 1}월</Text>
             {data.walkRecords.length > 0 && <SvgChevronDown width={11} height={6} />}
         </SelectionDropdown>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+        >
             {data.walkRecords.map(v => <SmallDiary
+                showDeleteButton={isDeletingMode}
+                onPressDelete={async () => {
+                    await userData.update("walkRecords", data.walkRecords.filter(a => a.id !== v.id));
+                    setData(await userData.get());
+                    setDiary(undefined);
+                }}
                 key={v.id}
                 data={v}
             />)}
         </ScrollView>
+        {isDeletingMode && <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="완료"
+            onPress={() => setIsDeletingMode(false)}
+            style={styles.deleteModeDoneButton}
+        >
+            <Text style={styles.deleteModeDoneText}>완료</Text>
+        </TouchableOpacity>}
     </View>;
 }
 
@@ -120,5 +153,24 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
         "fontFamily": "Ownglyph PDH",
         "fontSize": 18,
         "color": "#474747",
+    },
+    "deleteModeDoneButton": {
+        "position": "absolute",
+        "top": 148,
+        "right": 20,
+        "width": 59,
+        "height": 29,
+        "alignItems": "center",
+        "justifyContent": "center",
+        "borderWidth": 1,
+        "borderColor": "#688F6E",
+        "borderRadius": 20,
+        "zIndex": 20,
+    },
+    "deleteModeDoneText": {
+        "fontFamily": "Ownglyph PDH",
+        "fontSize": 15,
+        "letterSpacing": 0.45,
+        "color": "#688F6E",
     },
 });

@@ -9,6 +9,8 @@ import dayjs from 'dayjs';
 import Dropdown from "@/components/Dropdown";
 import SelectionDropdown from "@/components/SelectionDropdown";
 import { haptics } from "@/modules/haptics";
+import SmallDiary from "@/components/SmallDiary";
+import Dialog from "@/components/Dialog";
 
 import SvgArchive from '@/assets/svg/archive.svg';
 import SvgList from '@/assets/svg/list.svg';
@@ -18,8 +20,6 @@ import SvgGood from "@/assets/svg/dogs/good.svg";
 import SvgNormal from "@/assets/svg/dogs/normal.svg";
 import SvgSad from "@/assets/svg/dogs/sad.svg";
 import SvgAngry from "@/assets/svg/dogs/angry.svg";
-import SmallDiary from "@/components/SmallDiary";
-import Dialog from "@/components/Dialog";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const DOGS = { 5: SvgVeryGood, 4: SvgGood, 3: SvgNormal, 2: SvgSad, 1: SvgAngry };
@@ -41,10 +41,6 @@ export default function Page() {
     const [diary, setDiary] = useState<WalkRecord>();
     const [isDeletingMode, setIsDeletingMode] = useState(false);
 
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    const [deleteDialogDesc, setDeleteDialogDesc] = useState("");
-    const [deleteDialogTarget, setDeleteDialogTarget] = useState<string>();
-
     useFocusEffect(
         useCallback(() => {
             (async () => {
@@ -54,28 +50,6 @@ export default function Page() {
     );
 
     return <>
-        <Dialog
-            visible={showDeleteDialog}
-            onClose={() => setShowDeleteDialog(false)}
-            buttons={[
-                {
-                    "label": "취소",
-                    "onPress": () => setShowDeleteDialog(false),
-                    "variant": "outline"
-                },
-                {
-                    "label": "삭제",
-                    "onPress": async () => {
-                        await userData.update("walkRecords", data.walkRecords.filter(v => v.id !== deleteDialogTarget));
-                        setData(await userData.get());
-                        setDiary(undefined);
-                        setShowDeleteDialog(false);
-                    }
-                }
-            ]}
-        >
-            {deleteDialogDesc}
-        </Dialog>
         <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.headerText}>산책 기록</Text>
@@ -84,8 +58,10 @@ export default function Page() {
                         <SvgArchive width={15} height={15} />
                     </TouchableOpacity>
                     <Dropdown
+                        hitSlop={7}
+                        viewType="touchableopacity"
                         options={[
-                            { "label": "검색하기" },
+                            { "label": "검색하기", "onPress": () => router.push("/(tabs)/home/search") },
                             (isDeletingMode ? {
                                 "label": "삭제 취소",
                                 "onPress": () => setIsDeletingMode(false)
@@ -102,10 +78,10 @@ export default function Page() {
             <SelectionDropdown
                 disabled={data.walkRecords.length === 0}
                 value={`${currentYear}-${currentMonth + 1}`}
-                options={[...new Set(data.walkRecords.map(v => dayjs(v.date, "YYYYMMDD")).map(v => ({
-                    "label": `${v.year()}년 ${v.month() + 1}월`,
-                    "value": `${v.year()}-${v.month() + 1}`
-                })))].sort((a, b) => Number(a.value.replace("-", "")) - Number(b.value.replace("-", "")))}
+                options={[...new Set(data.walkRecords.map(v => dayjs(v.date, "YYYYMMDD").format("YYYY-MM")))].sort().map(month => ({
+                    "label": dayjs(month).format("YYYY년 M월"),
+                    "value": dayjs(month).format("YYYY-M"),
+                }))}
                 onChange={(value) => {
                     const [year, month] = (value as string).split("-");
                     setDiary(undefined);
@@ -174,10 +150,10 @@ export default function Page() {
                         showDeleteButton={isDeletingMode}
                         data={diary}
                         styles={{ "marginHorizontal": 0 }}
-                        onPressDelete={() => {
-                            setDeleteDialogDesc("정말로 일기를 삭제하시겠어요?");
-                            setDeleteDialogTarget(diary.id);
-                            setShowDeleteDialog(true);
+                        onPressDelete={async () => {
+                            await userData.update("walkRecords", data.walkRecords.filter(v => v.id !== diary.id));
+                            setData(await userData.get());
+                            setDiary(undefined);
                         }}
                     />
                 </View>}
