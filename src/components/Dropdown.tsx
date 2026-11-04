@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { ComponentRef, ReactNode } from "react";
 import {
     Animated,
     Pressable,
@@ -34,7 +34,7 @@ export default function Dropdown({
     viewType = "pressable",
 }: DropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const progress = useRef(new Animated.Value(0)).current;
     const opacity = progress;
     const scale = progress.interpolate({

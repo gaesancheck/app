@@ -4,6 +4,7 @@ import { Colors, DarkColors, LightColors } from "../../app.config";
 import { useEffect } from "react";
 import { router } from "expo-router";
 import useChooseByScheme from "@/modules/useChooseByScheme";
+import session from "@/modules/session";
 
 import Footstep from "@/assets/svg/balzaguk.svg";
 
@@ -13,9 +14,15 @@ export default function Loading() {
     const styles = getStyles(colors);
 
     useEffect(() => {
-        
-
-        router.replace("/(tabs)/home");
+        let active = true;
+        session.get()
+            .then(current => {
+                if (active) router.replace(current ? "/(tabs)/home" : "/login");
+            })
+            .catch(() => {
+                if (active) router.replace("/login");
+            });
+        return () => { active = false; };
     }, []);
 
     return <View

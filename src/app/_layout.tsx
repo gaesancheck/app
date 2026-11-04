@@ -1,9 +1,11 @@
 import { router, Stack } from "expo-router";
 import { useEffect, useState } from "react";
+import { Alert } from "react-native";
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
 import * as DevTools from 'expo-dev-client';
 import userData from "@/modules/userData";
+import { careData } from "@/modules/careData";
 import * as Expo from 'expo';
 import dayjs from "dayjs";
 
@@ -112,6 +114,18 @@ export default function RootLayout() {
                         });
 
                         await Expo.reloadAppAsync("Saved example data from DevClient");
+                    }
+                },
+                {
+                    "name": "모든 데이터 삭제",
+                    "shouldCollapse": true,
+                    "callback": async () => {
+                        try {
+                            await careData.clearAll();
+                            await Expo.reloadAppAsync("Cleared all local data from DevClient");
+                        } catch (error) {
+                            Alert.alert("데이터 삭제 실패", error instanceof Error ? error.message : "다시 시도해주세요.");
+                        }
                     }
                 },
                 {

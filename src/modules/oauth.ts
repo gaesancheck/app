@@ -13,7 +13,7 @@ async function randomToken(): Promise<string> {
     return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
-/** Naver/Kakao use native SDKs; Google keeps the server-mediated browser flow. */
+/** Naver/Kakao use native SDKs; Google/Apple use the server-mediated browser flow. */
 export async function signInWithOAuth(
     provider: OAuthProvider,
     keepMeLoggedIn: boolean,
@@ -83,12 +83,15 @@ export async function signInWithOAuth(
                 throw new Error("로그인 인증 코드가 없습니다.");
             }
 
-            response = await APIAuth.authorizeGoogle({
-                code,
-                state,
-                code_verifier: verifier,
-                redirect_uri: OAUTH_REDIRECT_URI,
-            });
+            const exchange = {
+                "code": code,
+                "state": state,
+                "code_verifier": verifier,
+                "redirect_uri": OAUTH_REDIRECT_URI,
+            };
+            response = provider === "apple"
+                ? await APIAuth.authorizeApple(exchange)
+                : await APIAuth.authorizeGoogle(exchange);
         }
         if (!response.success) throw new Error("로그인 서버 인증에 실패했습니다. 다시 시도해주세요.");
 

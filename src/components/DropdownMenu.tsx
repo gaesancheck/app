@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import type { ReactNode, RefObject } from "react";
+import type { ComponentRef, ReactNode, RefObject } from "react";
 import { Animated, Modal, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 
 type DropdownMenuProps = {
-    anchorRef: RefObject<View | null>;
+    anchorRef: RefObject<ComponentRef<typeof View> | null>;
     visible: boolean;
     progress: Animated.Value;
     width: number;

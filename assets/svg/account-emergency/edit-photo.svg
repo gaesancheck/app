@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Frame 450">
+<rect x="0.25" y="0.25" width="29.5" height="29.5" rx="14.75" fill="white"/>
+<rect x="0.25" y="0.25" width="29.5" height="29.5" rx="14.75" stroke="black" stroke-width="0.5"/>
+<path id="Icon" d="M18.5909 8.58492C18.7763 8.39948 18.9964 8.25238 19.2387 8.15201C19.481 8.05165 19.7407 8 20.003 8C20.2652 8 20.5249 8.05165 20.7672 8.15201C21.0095 8.25238 21.2296 8.39948 21.4151 8.58492C21.6005 8.77036 21.7476 8.99051 21.848 9.2328C21.9483 9.47509 22 9.73478 22 9.99703C22 10.2593 21.9483 10.519 21.848 10.7613C21.7476 11.0036 21.6005 11.2237 21.4151 11.4091L11.8833 20.9409L8 22L9.05909 18.1167L18.5909 8.58492Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke="black"/>
+</g>
+</svg>

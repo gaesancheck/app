@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { ComponentRef, ReactNode } from "react";
 import {
     Animated,
     Pressable,
@@ -36,7 +36,7 @@ export default function SelectionDropdown({
     disabled
 }: SelectionDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const [optionTextWidth, setOptionTextWidth] = useState(0);
     const progress = useRef(new Animated.Value(0)).current;
     const menuWidth = Math.max(

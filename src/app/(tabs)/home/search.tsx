@@ -1,15 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-    Keyboard,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TextInputInstance,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { Keyboard, Platform, ScrollView, StyleSheet, Text, TextInput, TextInputInstance, TouchableOpacity, View, } from "react-native";
 import type { EdgeInsets } from "react-native-safe-area-context";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";

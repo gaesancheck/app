@@ -17,6 +17,7 @@ import SvgEmail from '@/assets/svg/login/email.svg';
 import SvgPassword from '@/assets/svg/login/password.svg';
 
 const socialProviders = [
+    { "provider": "apple", "label": "Apple로 로그인", "background": "#000000", "color": "#FFFFFF" },
     { provider: "google", label: "Google로 로그인", background: "#FFFFFF", color: "#1F1F1F" },
     { provider: "naver", label: "네이버로 로그인", background: "#03C75A", color: "#FFFFFF" },
     { provider: "kakao", label: "카카오로 로그인", background: "#FEE500", color: "#191919" },
@@ -137,7 +138,7 @@ export default function Page() {
                 </View>
             </View>
         </ScrollView>
-        <TouchableOpacity style={styles.backButton} disabled={pendingProvider !== null} hitSlop={7} onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)/home")}>
+        <TouchableOpacity style={styles.backButton} disabled={pendingProvider !== null} hitSlop={7} onPress={() => router.canGoBack() ? router.back() : router.replace("/")}>
             <SvgBack width={15} height={15} />
         </TouchableOpacity>
     </View>;

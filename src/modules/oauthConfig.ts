@@ -1,4 +1,4 @@
-export type OAuthProvider = "google" | "naver" | "kakao";
+export type OAuthProvider = "google" | "naver" | "kakao" | "apple";
 
 // The backend redirects here with a short-lived, single-use APP code, never a JWT.
 export const OAUTH_REDIRECT_URI = "pawstep://login";

@@ -96,6 +96,15 @@ export const APIAuth = {
             timeout: 15000,
         });
     },
+    async authorizeApple(data: OAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
+        // Backend contract: docs/APPLE_OAUTH_API.md. The server implementation is separate.
+        return REST<APIAuthSession, APIError>("/v1/auth/oauth/apple/exchange", {
+            "method": "POST",
+            "headers": { "Content-Type": "application/json" },
+            "data": data,
+            "timeout": 15000,
+        });
+    },
     async authorizeNaver(data: NativeOAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
         // POST /v1/auth/oauth/naver/exchange
         // Content-Type: application/json
