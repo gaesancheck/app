@@ -2,13 +2,13 @@ import { REST, type RESTResponse } from ".";
 import type { NativeOAuthExchangeRequest, OAuthExchangeRequest } from "../oauthConfig";
 
 export type APIAuthSession = {
-    "access_token": string,
-    "expires_in": number,
-    "needs_onboarding"?: boolean
+    "access_token": string;
+    "expires_in": number;
+    "needs_onboarding"?: boolean;
 };
 
 export const APIAuth = {
-    async authorizeGoogle(data: OAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
+    async "authorizeGoogle"(data: OAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
         // POST /v1/auth/oauth/google/exchange
         // Content-Type: application/json
         // requestBody: OAuthExchangeRequest
@@ -20,7 +20,7 @@ export const APIAuth = {
             "timeout": 15000,
         });
     },
-    async authorizeApple(data: OAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
+    async "authorizeApple"(data: OAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
         // Backend contract: docs/APPLE_OAUTH_API.md. The server implementation is separate.
         return REST<APIAuthSession, APIError>("/v1/auth/oauth/apple/exchange", {
             "method": "POST",
@@ -29,7 +29,7 @@ export const APIAuth = {
             "timeout": 15000,
         });
     },
-    async authorizeNaver(data: NativeOAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
+    async "authorizeNaver"(data: NativeOAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
         // POST /v1/auth/oauth/naver/exchange
         // Content-Type: application/json
         // requestBody: NativeOAuthExchangeRequest
@@ -41,7 +41,7 @@ export const APIAuth = {
             "timeout": 15000,
         });
     },
-    async authorizeKakao(data: NativeOAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
+    async "authorizeKakao"(data: NativeOAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
         // POST /v1/auth/oauth/kakao/exchange
         // Content-Type: application/json
         // requestBody: NativeOAuthExchangeRequest

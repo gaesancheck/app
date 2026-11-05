@@ -1,6 +1,6 @@
 {
-  "name": "pawstep-kakao-map",
-  "version": "1.0.0",
-  "private": true,
-  "main": "index.tsx"
+    "name": "pawstep-kakao-map",
+    "version": "1.0.0",
+    "private": true,
+    "main": "index.tsx"
 }

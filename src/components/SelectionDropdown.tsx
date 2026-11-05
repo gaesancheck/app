@@ -1,30 +1,23 @@
 import { useRef, useState } from "react";
 import type { ComponentRef, ReactNode } from "react";
-import {
-    Animated,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
 import DropdownMenu from "./DropdownMenu";
 
 const DESIGN_SCALE = 1.5;
 
 export type SelectionDropdownOption = {
-    label: string;
-    value: string | number;
+    "label": string;
+    "value": string | number;
 };
 
 type SelectionDropdownProps = {
-    children: ReactNode;
-    value?: string | number;
-    options: SelectionDropdownOption[];
-    onChange?: (value: string | number) => void;
-    containerStyle?: StyleProp<ViewStyle>;
-    disabled?: boolean
+    "children": ReactNode;
+    "value"?: string | number;
+    "options": SelectionDropdownOption[];
+    "onChange"?: (value: string | number) => void;
+    "containerStyle"?: StyleProp<ViewStyle>;
+    "disabled"?: boolean;
 };
 
 export default function SelectionDropdown({
@@ -33,24 +26,21 @@ export default function SelectionDropdown({
     options,
     onChange,
     containerStyle,
-    disabled
+    disabled,
 }: SelectionDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const [optionTextWidth, setOptionTextWidth] = useState(0);
     const progress = useRef(new Animated.Value(0)).current;
-    const menuWidth = Math.max(
-        optionTextWidth + 28 * DESIGN_SCALE,
-        82 * DESIGN_SCALE,
-    );
+    const menuWidth = Math.max(optionTextWidth + 28 * DESIGN_SCALE, 82 * DESIGN_SCALE);
     const opacity = progress;
     const scale = progress.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0.94, 1],
+        "inputRange": [0, 1],
+        "outputRange": [0.94, 1],
     });
     const translateY = progress.interpolate({
-        inputRange: [0, 1],
-        outputRange: [-4 * DESIGN_SCALE, 0],
+        "inputRange": [0, 1],
+        "outputRange": [-4 * DESIGN_SCALE, 0],
     });
 
     const selectOption = (option: SelectionDropdownOption) => {
@@ -58,78 +48,81 @@ export default function SelectionDropdown({
         setIsOpen(false);
     };
 
-    return <View ref={anchorRef} collapsable={false} style={[styles.container, containerStyle]}>
-        <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ "expanded": isOpen }}
-            onPress={() => setIsOpen((open) => !open)}
-            style={styles.trigger}
-            disabled={disabled}
-        >
-            {children}
-        </Pressable>
-        <DropdownMenu
-            anchorRef={anchorRef}
-            visible={isOpen}
-            progress={progress}
-            width={menuWidth}
-            gap={3}
-            align="center"
-            onClose={() => setIsOpen(false)}
-        >
-            <Animated.View
-                accessibilityElementsHidden={!isOpen}
-                importantForAccessibility={isOpen ? "auto" : "no-hide-descendants"}
-                pointerEvents={isOpen ? "auto" : "none"}
-                style={[
-                    styles.menu,
-                    {
-                        "width": menuWidth,
-                        "opacity": opacity,
-                        "transform": [{ "translateY": translateY }, { "scaleY": scale }],
-                    },
-                ]}
+    return (
+        <View ref={anchorRef} collapsable={false} style={[styles.container, containerStyle]}>
+            <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ "expanded": isOpen }}
+                onPress={() => setIsOpen(open => !open)}
+                style={styles.trigger}
+                disabled={disabled}
             >
-                <ScrollView
-                    contentContainerStyle={styles.options}
-                    showsVerticalScrollIndicator={false}
+                {children}
+            </Pressable>
+            <DropdownMenu
+                anchorRef={anchorRef}
+                visible={isOpen}
+                progress={progress}
+                width={menuWidth}
+                gap={3}
+                align="center"
+                onClose={() => setIsOpen(false)}
+            >
+                <Animated.View
+                    accessibilityElementsHidden={!isOpen}
+                    importantForAccessibility={isOpen ? "auto" : "no-hide-descendants"}
+                    pointerEvents={isOpen ? "auto" : "none"}
+                    style={[
+                        styles.menu,
+                        {
+                            "width": menuWidth,
+                            "opacity": opacity,
+                            "transform": [{ "translateY": translateY }, { "scaleY": scale }],
+                        },
+                    ]}
                 >
-                    {options.map((option) => <Pressable
-                        key={String(option.value)}
-                        accessibilityRole="button"
-                        accessibilityState={{ "selected": option.value === value }}
-                        onPress={() => selectOption(option)}
-                        style={styles.option}
+                    <ScrollView contentContainerStyle={styles.options} showsVerticalScrollIndicator={false}>
+                        {options.map(option => (
+                            <Pressable
+                                key={String(option.value)}
+                                accessibilityRole="button"
+                                accessibilityState={{ "selected": option.value === value }}
+                                onPress={() => selectOption(option)}
+                                style={styles.option}
+                            >
+                                <Text
+                                    numberOfLines={1}
+                                    style={[
+                                        option.value === value ? styles.optionLabelSelected : styles.optionLabel,
+                                        option.value === value && optionTextWidth > 0
+                                            ? { "width": optionTextWidth }
+                                            : undefined,
+                                    ]}
+                                >
+                                    {option.label}
+                                </Text>
+                            </Pressable>
+                        ))}
+                    </ScrollView>
+                </Animated.View>
+            </DropdownMenu>
+            <View style={styles.measurement} pointerEvents="none" accessibilityElementsHidden>
+                {options.map(option => (
+                    <Text
+                        key={`measure-${String(option.value)}`}
+                        numberOfLines={1}
+                        onLayout={event => {
+                            const width = event.nativeEvent.layout.width;
+                            setOptionTextWidth(currentWidth => Math.max(currentWidth, width));
+                        }}
+                        style={styles.optionLabelSelected}
                     >
-                        <Text
-                            numberOfLines={1}
-                            style={[
-                                option.value === value ? styles.optionLabelSelected : styles.optionLabel,
-                                option.value === value && optionTextWidth > 0
-                                    ? { "width": optionTextWidth }
-                                    : undefined,
-                            ]}
-                        >
-                            {option.label}
-                        </Text>
-                    </Pressable>)}
-                </ScrollView>
-            </Animated.View>
-        </DropdownMenu>
-        <View style={styles.measurement} pointerEvents="none" accessibilityElementsHidden>
-            {options.map((option) => <Text
-                key={`measure-${String(option.value)}`}
-                numberOfLines={1}
-                onLayout={(event) => {
-                    const width = event.nativeEvent.layout.width;
-                    setOptionTextWidth((currentWidth) => Math.max(currentWidth, width));
-                }}
-                style={styles.optionLabelSelected}
-            >
-                {option.label}
-            </Text>)}
+                        {option.label}
+                    </Text>
+                ))}
+            </View>
         </View>
-    </View>;
+    );
 }
 
 const styles = StyleSheet.create({
@@ -156,7 +149,10 @@ const styles = StyleSheet.create({
         "zIndex": 20,
         "elevation": 4 * DESIGN_SCALE,
         "shadowColor": "#000000",
-        "shadowOffset": { "width": 0, "height": DESIGN_SCALE },
+        "shadowOffset": {
+            "width": 0,
+            "height": DESIGN_SCALE,
+        },
         "shadowOpacity": 0.25,
         "shadowRadius": 2 * DESIGN_SCALE,
     },

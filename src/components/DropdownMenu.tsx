@@ -3,21 +3,21 @@ import type { ComponentRef, ReactNode, RefObject } from "react";
 import { Animated, Modal, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 
 type DropdownMenuProps = {
-    anchorRef: RefObject<ComponentRef<typeof View> | null>;
-    visible: boolean;
-    progress: Animated.Value;
-    width: number;
-    gap: number;
-    align: "center" | "right";
-    onClose: () => void;
-    children: ReactNode;
+    "anchorRef": RefObject<ComponentRef<typeof View> | null>;
+    "visible": boolean;
+    "progress": Animated.Value;
+    "width": number;
+    "gap": number;
+    "align": "center" | "right";
+    "onClose": () => void;
+    "children": ReactNode;
 };
 
 type AnchorLayout = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+    "x": number;
+    "y": number;
+    "width": number;
+    "height": number;
 };
 
 export default function DropdownMenu({
@@ -70,42 +70,42 @@ export default function DropdownMenu({
 
     if (!anchor) return null;
 
-    const left = align === "right"
-        ? anchor.x + anchor.width - width
-        : anchor.x + (anchor.width - width) / 2;
+    const left = align === "right" ? anchor.x + anchor.width - width : anchor.x + (anchor.width - width) / 2;
 
-    return <Modal
-        transparent
-        visible
-        animationType="none"
-        presentationStyle="overFullScreen"
-        statusBarTranslucent
-        navigationBarTranslucent
-        onShow={() => setIsPresented(true)}
-        onRequestClose={onClose}
-    >
-        <View style={styles.container} pointerEvents="box-none">
-            <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="드롭다운 닫기"
-                style={StyleSheet.absoluteFill}
-                onPress={onClose}
-            />
-            <View
-                onAccessibilityEscape={onClose}
-                style={[
-                    styles.menu,
-                    {
-                        "top": anchor.y + anchor.height + gap,
-                        "left": Math.max(0, Math.min(left, screenWidth - width)),
-                        "width": width,
-                    },
-                ]}
-            >
-                {children}
+    return (
+        <Modal
+            transparent
+            visible
+            animationType="none"
+            presentationStyle="overFullScreen"
+            statusBarTranslucent
+            navigationBarTranslucent
+            onShow={() => setIsPresented(true)}
+            onRequestClose={onClose}
+        >
+            <View style={styles.container} pointerEvents="box-none">
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="드롭다운 닫기"
+                    style={StyleSheet.absoluteFill}
+                    onPress={onClose}
+                />
+                <View
+                    onAccessibilityEscape={onClose}
+                    style={[
+                        styles.menu,
+                        {
+                            "top": anchor.y + anchor.height + gap,
+                            "left": Math.max(0, Math.min(left, screenWidth - width)),
+                            "width": width,
+                        },
+                    ]}
+                >
+                    {children}
+                </View>
             </View>
-        </View>
-    </Modal>;
+        </Modal>
+    );
 }
 
 const styles = StyleSheet.create({

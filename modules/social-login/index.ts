@@ -2,11 +2,11 @@ import { requireOptionalNativeModule } from "expo";
 
 export type NativeOAuthProvider = "naver" | "kakao";
 export type NativeOAuthResult =
-    | { status: "cancelled" }
-    | { status: "success"; accessToken: string; expiresAt: number };
+    | { "status": "cancelled" }
+    | { "status": "success"; "accessToken": string; "expiresAt": number };
 
 type SocialLoginModule = {
-    login(provider: NativeOAuthProvider): Promise<NativeOAuthResult>;
+    "login"(provider: NativeOAuthProvider): Promise<NativeOAuthResult>;
 };
 
 // Resolve lazily so an older development build can still open the app.

@@ -1,20 +1,18 @@
 import { emergencyService } from "../emergencyService";
 
-
 export type APIMissingPetInfo = {
-    "name": string,
-    "gender": "male" | "female",
-    "age": number,
-    "neutering": boolean,
-    "lastPosition": string,
+    "name": string;
+    "gender": "male" | "female";
+    "age": number;
+    "neutering": boolean;
+    "lastPosition": string;
     "lastSeen": {
-        "hours"?: number,
-        "minutes"?: number
-    },
-    "specials": string,
-    "missingSince": number,
-    "picture": string
+        "hours"?: number;
+        "minutes"?: number;
+    };
+    "specials": string;
+    "missingSince": number;
+    "picture": string;
 };
-
 
 export const APIEmergency = emergencyService;

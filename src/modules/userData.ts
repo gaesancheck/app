@@ -9,7 +9,7 @@ const STORAGE_KEY = "userData";
 export const SAVE_DEFAULT: UserData = { "loggedIn": false, "walkRecords": [] };
 
 export const userData = {
-    async get(): Promise<UserData> {
+    async "get"(): Promise<UserData> {
         const key = await accountStorageKey(STORAGE_KEY);
         let stored = await AsyncStorage.getItem(key);
         if (stored === null && !key.endsWith(".guest")) {
@@ -21,7 +21,9 @@ export const userData = {
                         stored = legacy;
                         await AsyncStorage.setItem(key, legacy);
                     }
-                } catch { /* Ignore invalid old data. */ }
+                } catch {
+                    /* Ignore invalid old data. */
+                }
                 await AsyncStorage.removeItem(STORAGE_KEY);
             }
         }
@@ -29,17 +31,19 @@ export const userData = {
             try {
                 const data = JSON.parse(stored) as UserData;
                 if (typeof data.loggedIn === "boolean" && Array.isArray(data.walkRecords)) return data;
-            } catch { /* Invalid saved data falls back to an empty account. */ }
+            } catch {
+                /* Invalid saved data falls back to an empty account. */
+            }
         }
         return { ...SAVE_DEFAULT, "walkRecords": [] };
     },
-    async set(data: UserData): Promise<void> {
+    async "set"(data: UserData): Promise<void> {
         await AsyncStorage.setItem(await accountStorageKey(STORAGE_KEY), JSON.stringify(data));
     },
-    async update<K extends keyof UserData>(key: K, value: UserData[K]): Promise<void> {
-        await this.set({ ...await this.get(), [key]: value });
+    async "update"<K extends keyof UserData>(key: K, value: UserData[K]): Promise<void> {
+        await this.set({ ...(await this.get()), [key]: value });
     },
-    async clear(): Promise<void> {
+    async "clear"(): Promise<void> {
         await AsyncStorage.removeItem(await accountStorageKey(STORAGE_KEY));
     },
 };

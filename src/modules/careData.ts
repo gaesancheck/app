@@ -8,23 +8,42 @@ import { accountStorageKey } from "./accountStorage";
 export type Pet = APIMyInfo["petInfo"] & { "id": string; "specials": string };
 export type Attachment = { "name": string; "url": string };
 export type Inquiry = {
-    "id": string; "contactType": string; "title": string; "content": string;
-    "attachments": Attachment[]; "createdAt": number; "answer"?: string;
+    "id": string;
+    "contactType": string;
+    "title": string;
+    "content": string;
+    "attachments": Attachment[];
+    "createdAt": number;
+    "answer"?: string;
 };
 export type MissingPet = Pet & {
-    "missingSince": number; "lastPosition": string; "lastTime": string; "ownerName": string;
+    "missingSince": number;
+    "lastPosition": string;
+    "lastTime": string;
+    "ownerName": string;
     "ownerId"?: string;
 };
 export type Report = {
-    "id": string; "petId": string; "petName": string; "time": string; "position": string;
-    "content": string; "pictures": string[]; "createdAt": number;
-    "senderId"?: string; "senderName"?: string; "ownerId"?: string;
+    "id": string;
+    "petId": string;
+    "petName": string;
+    "time": string;
+    "position": string;
+    "content": string;
+    "pictures": string[];
+    "createdAt": number;
+    "senderId"?: string;
+    "senderName"?: string;
+    "ownerId"?: string;
     "messages": { "id": string; "content": string; "createdAt": number; "senderId"?: string; "senderName"?: string }[];
 };
 export type CareData = {
     "account": APIMyInfo["account"];
-    "pets": Pet[]; "inquiries": Inquiry[];
-    "emergency": MissingPet | null; "checks": string[]; "reports": Report[];
+    "pets": Pet[];
+    "inquiries": Inquiry[];
+    "emergency": MissingPet | null;
+    "checks": string[];
+    "reports": Report[];
 };
 const STORAGE_KEY = "careData.v1";
 let queue: Promise<unknown> = Promise.resolve();
@@ -32,10 +51,13 @@ let queue: Promise<unknown> = Promise.resolve();
 async function storageKey(): Promise<string> {
     const key = await accountStorageKey(STORAGE_KEY);
     const current = await session.get();
-    if (current && await AsyncStorage.getItem(key) === null) {
+    if (current && (await AsyncStorage.getItem(key)) === null) {
         const previous = `${STORAGE_KEY}.${await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, current.jwt)}`;
         const stored = await AsyncStorage.getItem(previous);
-        if (stored) { await AsyncStorage.setItem(key, stored); if (previous !== key) await AsyncStorage.removeItem(previous); }
+        if (stored) {
+            await AsyncStorage.setItem(key, stored);
+            if (previous !== key) await AsyncStorage.removeItem(previous);
+        }
     }
     return key;
 }
@@ -44,8 +66,13 @@ async function read(key: string): Promise<CareData> {
     const saved = await AsyncStorage.getItem(key);
     if (saved) {
         const parsed = JSON.parse(saved) as CareData;
-        if (!parsed.account || !Array.isArray(parsed.pets) || !Array.isArray(parsed.inquiries)
-            || !Array.isArray(parsed.checks) || !Array.isArray(parsed.reports)) {
+        if (
+            !parsed.account ||
+            !Array.isArray(parsed.pets) ||
+            !Array.isArray(parsed.inquiries) ||
+            !Array.isArray(parsed.checks) ||
+            !Array.isArray(parsed.reports)
+        ) {
             throw new Error("저장된 정보를 불러오지 못했어요.");
         }
         return parsed;
@@ -55,14 +82,17 @@ async function read(key: string): Promise<CareData> {
     const initial: CareData = {
         "account": response.data.account,
         "pets": [{ ...response.data.petInfo, "id": Crypto.randomUUID(), "specials": "" }],
-        "inquiries": [], "emergency": null, "checks": [], "reports": [],
+        "inquiries": [],
+        "emergency": null,
+        "checks": [],
+        "reports": [],
     };
     await AsyncStorage.setItem(key, JSON.stringify(initial));
     return initial;
 }
 
 export const careData = {
-    clearAll(): Promise<void> {
+    "clearAll"(): Promise<void> {
         const operation = queue.then(async () => {
             const attachments = new Directory(Paths.document, "care-attachments");
             if (attachments.exists) attachments.delete();
@@ -74,12 +104,12 @@ export const careData = {
         queue = operation.catch(() => undefined);
         return operation;
     },
-    async get(): Promise<CareData> {
+    async "get"(): Promise<CareData> {
         const operation = queue.then(async () => read(await storageKey()));
         queue = operation.catch(() => undefined);
         return operation;
     },
-    update(change: (current: CareData) => CareData): Promise<CareData> {
+    "update"(change: (current: CareData) => CareData): Promise<CareData> {
         const operation = queue.then(async () => {
             const key = await storageKey();
             const next = change(await read(key));
@@ -89,7 +119,7 @@ export const careData = {
         queue = operation.catch(() => undefined);
         return operation;
     },
-    async clear(): Promise<void> {
+    async "clear"(): Promise<void> {
         await queue;
         const key = await storageKey();
         const saved = await AsyncStorage.getItem(key);
@@ -116,7 +146,15 @@ export const careData = {
 
 export function newPet(): Pet {
     return {
-        "id": Crypto.randomUUID(), "name": "", "type": "", "gender": "female",
-        "age": 0, "birth": "", "neutering": false, "diseases": "", "picture": "", "specials": "",
+        "id": Crypto.randomUUID(),
+        "name": "",
+        "type": "",
+        "gender": "female",
+        "age": 0,
+        "birth": "",
+        "neutering": false,
+        "diseases": "",
+        "picture": "",
+        "specials": "",
     };
 }

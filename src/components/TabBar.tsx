@@ -27,67 +27,76 @@ type TabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>["tab
 export default function TabBar({ state, emitter, navigateToTab, insets }: TabBarProps) {
     const colors = useChooseByScheme(LightColors, DarkColors);
     const styles = getStyles(colors);
-    
-    return <View style={[styles.tabbar, { paddingBottom: insets.bottom, height: 60 + insets.bottom }]}>
-        <View style={styles.tabbarItems}>
-            {state.routes.map((route, index) => {
-                if (!(route.name in names)) return null;
-                const [label, Icon] = names[route.name as Screens];
-                const selected = state.index === index;
-                const color = selected ? colors.green_light2 : "#6e6e6e";
 
-                return <TouchableOpacity
-                    key={route.key}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected }}
-                    accessibilityLabel={label}
-                    hitSlop={15}
-                    style={styles.tabbarItem}
-                    onPress={() => {
-                        haptics.light();
-                        const event = emitter.emit({
-                            type: "tabPress",
-                            target: route.key,
-                            canPreventDefault: true
-                        });
-                        if (!selected && !event.defaultPrevented) {
-                            navigateToTab(route.key);
-                        }
-                    }}
-                    onLongPress={() => emitter.emit({ type: "tabLongPress", target: route.key })}
-                >
-                    {selected && route.name === "home" ? <SvgSelectedHome width={30} height={30} color={color} /> : <Icon width={30} height={30} color={color} />}
-                    <Text style={[styles.tabbarItemText, { color }]}>{label}</Text>
-                </TouchableOpacity>;
-            })}
+    return (
+        <View style={[styles.tabbar, { "paddingBottom": insets.bottom, "height": 60 + insets.bottom }]}>
+            <View style={styles.tabbarItems}>
+                {state.routes.map((route, index) => {
+                    if (!(route.name in names)) return null;
+                    const [label, Icon] = names[route.name as Screens];
+                    const selected = state.index === index;
+                    const color = selected ? colors.green_light2 : "#6e6e6e";
+
+                    return (
+                        <TouchableOpacity
+                            key={route.key}
+                            accessibilityRole="tab"
+                            accessibilityState={{ selected }}
+                            accessibilityLabel={label}
+                            hitSlop={15}
+                            style={styles.tabbarItem}
+                            onPress={() => {
+                                haptics.light();
+                                const event = emitter.emit({
+                                    "type": "tabPress",
+                                    "target": route.key,
+                                    "canPreventDefault": true,
+                                });
+                                if (!selected && !event.defaultPrevented) {
+                                    navigateToTab(route.key);
+                                }
+                            }}
+                            onLongPress={() => emitter.emit({ "type": "tabLongPress", "target": route.key })}
+                        >
+                            {selected && route.name === "home" ? (
+                                <SvgSelectedHome width={30} height={30} color={color} />
+                            ) : (
+                                <Icon width={30} height={30} color={color} />
+                            )}
+                            <Text style={[styles.tabbarItemText, { color }]}>{label}</Text>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
         </View>
-    </View>;
+    );
 }
 
-const getStyles = (colors: Colors) => StyleSheet.create({
-    "tabbar": {
-        "backgroundColor": colors.background,
-        "width": "100%",
-        "borderColor": "#9CA3AF",
-        "borderWidth": 0.3,
-        "borderStyle": "solid",
-        "borderTopLeftRadius": 15,
-        "borderTopRightRadius": 15
-    },
-    "tabbarItems": {
-        "marginHorizontal": "auto",
-        "paddingVertical": 15,
-        "flexDirection": "row",
-        "gap": 40
-    },
-    "tabbarItem": {
-        "gap": 3.5,
-        "flexDirection": "column",
-        "alignItems": "center"
-    },
-    "tabbarItemText": {
-        "maxWidth": 45,
-        "fontFamily": "NanumSquareNeo-Regular",
-        "fontSize": 11,
-    }
-});
+const getStyles = (colors: Colors) =>
+    StyleSheet.create({
+        "tabbar": {
+            "backgroundColor": colors.background,
+            "width": "100%",
+            "borderColor": "#9CA3AF",
+            "borderWidth": 0.3,
+            "borderStyle": "solid",
+            "borderTopLeftRadius": 15,
+            "borderTopRightRadius": 15,
+        },
+        "tabbarItems": {
+            "marginHorizontal": "auto",
+            "paddingVertical": 15,
+            "flexDirection": "row",
+            "gap": 40,
+        },
+        "tabbarItem": {
+            "gap": 3.5,
+            "flexDirection": "column",
+            "alignItems": "center",
+        },
+        "tabbarItemText": {
+            "maxWidth": 45,
+            "fontFamily": "NanumSquareNeo-Regular",
+            "fontSize": 11,
+        },
+    });

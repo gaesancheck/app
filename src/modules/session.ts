@@ -1,9 +1,9 @@
 import * as SecureStore from "expo-secure-store";
 
 export type SessionData = {
-    jwt: string;
-    expiresAt?: number;
-    needsOnboarding?: boolean;
+    "jwt": string;
+    "expiresAt"?: number;
+    "needsOnboarding"?: boolean;
 };
 
 const STORAGE_KEY = "session";
@@ -15,14 +15,13 @@ function isSessionData(value: unknown): value is SessionData {
         "jwt" in value &&
         typeof value.jwt === "string" &&
         value.jwt.trim().length > 0 &&
-        (!("expiresAt" in value) ||
-            (typeof value.expiresAt === "number" && Number.isFinite(value.expiresAt))) &&
+        (!("expiresAt" in value) || (typeof value.expiresAt === "number" && Number.isFinite(value.expiresAt))) &&
         (!("needsOnboarding" in value) || typeof value.needsOnboarding === "boolean")
     );
 }
 
 export const session = {
-    async get(): Promise<SessionData | null> {
+    async "get"(): Promise<SessionData | null> {
         const stored = await SecureStore.getItemAsync(STORAGE_KEY);
         if (stored === null) return null;
 
@@ -36,7 +35,7 @@ export const session = {
         }
     },
 
-    async set(data: SessionData): Promise<void> {
+    async "set"(data: SessionData): Promise<void> {
         if (!isSessionData(data)) {
             throw new Error("Invalid session data");
         }
@@ -44,7 +43,7 @@ export const session = {
         await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(data));
     },
 
-    async clear(): Promise<void> {
+    async "clear"(): Promise<void> {
         await SecureStore.deleteItemAsync(STORAGE_KEY);
     },
 };

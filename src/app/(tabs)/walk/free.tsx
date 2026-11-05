@@ -4,7 +4,13 @@ import { RouteMap } from "@/components/EmergencyUI";
 import { WalkMetrics } from "@/components/WalkUI";
 
 export default function Page() {
-    return <CareScreen title="자유 산책" footer={<CareButton onPress={() => router.push("/(tabs)/walk/record")}>산책 시작하기</CareButton>}>
-        <RouteMap height={280} /><WalkMetrics />
-    </CareScreen>;
+    return (
+        <CareScreen
+            title="자유 산책"
+            footer={<CareButton onPress={() => router.push("/(tabs)/walk/record")}>산책 시작하기</CareButton>}
+        >
+            <RouteMap height={280} />
+            <WalkMetrics />
+        </CareScreen>
+    );
 }
