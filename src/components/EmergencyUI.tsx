@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
 import { useIsFocused } from "expo-router";
 import { router } from "expo-router";
@@ -8,6 +9,7 @@ import KakaoMapView from "../../modules/kakao-map";
 import { CareText, careColors, ui } from "./CareUI";
 import type { MissingPet, Pet } from "@/modules/careData";
 import Expand from "@/assets/svg/account-emergency/expand.svg";
+import { LightColors } from "../../app.config";
 
 export const emergencySections = [
     { "key": "missing", "label": "실종동물", "route": "/(tabs)/emergency" },
@@ -45,11 +47,15 @@ export function RouteMap({ points = [], height = 210 }: { points?: EmergencyMapR
     const key = String(Constants.expoConfig?.extra?.kakaoNativeAppKey ?? "");
     const map = (full: boolean) => <View style={{ "flex": full ? 1 : undefined, "height": full ? undefined : height, "borderRadius": 12, "overflow": "hidden", "backgroundColor": "#272727", "marginBottom": full ? 0 : 12 }}>
         {key && !error ? <KakaoMapView style={StyleSheet.absoluteFill} appKey={key} active={focused && (full || !expanded)} routeCoordinates={points} onMapError={event => setError(event.nativeEvent.message)} /> : <View style={{ "flex": 1, "alignItems": "center", "justifyContent": "center", "padding": 20 }}><CareText style={{ "color": "#FFF", "textAlign": "center" }}>{"지도를 불러오지 못했어요. 잠시 후 다시 시도해주세요."}</CareText></View>}
-        <Pressable accessibilityRole="button" accessibilityLabel={full ? "지도 닫기" : "지도 확대"} onPress={() => setExpanded(!full)} style={{ "position": "absolute", "right": 12, "bottom": 12, "width": 30, "height": 30, "borderRadius": 15, "alignItems": "center", "justifyContent": "center", "backgroundColor": "#FFF" }}>{full ? <CareText>×</CareText> : <Expand />}</Pressable>
+        <SafeAreaView pointerEvents="box-none" edges={full ? ["bottom", "right", "left"] : []} style={[StyleSheet.absoluteFill, styles.mapControls]}>
+            <Pressable accessibilityRole="button" accessibilityLabel={full ? "지도 닫기" : "지도 확대"} onPress={() => setExpanded(!full)} style={styles.mapButton}>{full ? <CareText>×</CareText> : <Expand />}</Pressable>
+        </SafeAreaView>
     </View>;
-    return <>{map(false)}<Modal visible={expanded} animationType="slide" onRequestClose={() => setExpanded(false)}>{map(true)}</Modal></>;
+    return <>{map(false)}<Modal visible={expanded} animationType="slide" onRequestClose={() => setExpanded(false)}><SafeAreaProvider>{map(true)}</SafeAreaProvider></Modal></>;
 }
 const styles = StyleSheet.create({
+    "mapControls": { "padding": 12, "alignItems": "flex-end", "justifyContent": "flex-end" },
+    "mapButton": { "width": 30, "height": 30, "borderRadius": 15, "alignItems": "center", "justifyContent": "center", "backgroundColor": LightColors.green_light1 },
     "nav": { "flexDirection": "row", "flexWrap": "wrap", "gap": 10, "marginHorizontal": 13, "marginBottom": 23 },
     "tab": { "borderRadius": 20, "paddingHorizontal": 10, "paddingVertical": 4, "backgroundColor": "#E2E2E2" },
     "activeTab": { "backgroundColor": "#474747" },
