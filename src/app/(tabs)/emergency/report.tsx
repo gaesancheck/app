@@ -1,17 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import * as Crypto from "expo-crypto";
 import { CareScreen, CareText, CareButton, Field, PhotoPicker, LoadingState, ErrorState, showCareError } from "@/components/CareUI";
 import { RouteMap } from "@/components/EmergencyUI";
 import useCareData from "@/modules/useCareData";
-import { careData } from "@/modules/careData";
-import { missingPetExamples } from "@/modules/emergencyData";
+import type { MissingPet } from "@/modules/careData";
+import { emergencyService } from "@/modules/emergencyService";
 
 export default function Page() {
     const { petId } = useLocalSearchParams<{ petId: string }>();
     const { data, failed, retry } = useCareData();
-    const pet = [data?.emergency, ...missingPetExamples].find(item => item?.id === petId);
+    const [pet, setPet] = useState<MissingPet | null>(null);
+    useEffect(() => { let active = true; emergencyService.getMissingPets().then(items => { if (active) setPet(items.find(item => item.id === petId) ?? null); }).catch(showCareError); return () => { active = false; }; }, [petId]);
     const [time, setTime] = useState("");
     const [position, setPosition] = useState("");
     const [content, setContent] = useState("");
@@ -22,9 +22,8 @@ export default function Page() {
         if (!time.trim() || !position.trim()) { showCareError(new Error("마주친 시각과 장소를 입력해주세요.")); return; }
         setBusy(true);
         try {
-            const report = { "id": Crypto.randomUUID(), "petId": pet.id, "petName": pet.name, "time": time.trim(), "position": position.trim(), "content": content.trim(), "pictures": pictures, "createdAt": Date.now(), "messages": [] };
-            await careData.update(current => ({ ...current, "reports": [report, ...current.reports] }));
-            Alert.alert("제보 저장", "제보 내용을 이 기기에 저장했어요. 보호자에게 실제로 전송하는 기능은 아직 준비 중이에요.", [{ "text": "확인", "onPress": () => router.replace("/(tabs)/emergency/reports") }]);
+            const report = await emergencyService.submitReport({ "petId": pet.id, "petName": pet.name, "time": time.trim(), "position": position.trim(), "content": content.trim(), "pictures": pictures });
+            Alert.alert("제보 완료", "제보가 등록되었어요.", [{ "text": "확인", "onPress": () => router.replace({ "pathname": "/(tabs)/emergency/chat", "params": { "id": report.id } }) }]);
         } catch (error) { showCareError(error); } finally { setBusy(false); }
     };
     return <CareScreen title="제보글 작성" footer={pet ? <CareButton disabled={busy || !time.trim() || !position.trim()} onPress={() => void submit()}>{busy ? "저장 중…" : "제보글 보내기"}</CareButton> : undefined}>

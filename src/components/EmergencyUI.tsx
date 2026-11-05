@@ -29,7 +29,7 @@ export function EmergencyNav({ active, enabled }: { active: string; enabled: boo
 export function PetCard({ pet, missing, onReport }: { pet: Pet; missing?: MissingPet; onReport?: () => void }) {
     return <View style={ui.card}>
         {missing && <View style={styles.cardHeader}><View style={ui.pill}><CareText style={{ "fontSize": 15, "color": careColors.green }}>실종된 지 {Math.max(1, dayjs().diff(dayjs(missing.missingSince), "day") + 1)}일째</CareText></View>
-            {onReport && <Pressable onPress={onReport} accessibilityRole="button" hitSlop={8}><CareText style={{ "fontSize": 15, "color": "#E36163", "textDecorationLine": "underline" }}>제보하러가기</CareText></Pressable>}
+            {onReport && <Pressable onPress={onReport} accessibilityRole="button" hitSlop={8}><CareText style={{ "fontSize": 15, "color": "#E36163", "textDecorationLine": "underline" }}>제보하기</CareText></Pressable>}
         </View>}
         <View style={styles.petRow}>{pet.picture ? <Image source={{ "uri": pet.picture }} style={styles.picture} /> : <View style={styles.picture} />}
             <View style={{ "gap": 5, "paddingTop": 4 }}><CareText style={styles.detail}>이름: {pet.name}</CareText><CareText style={styles.detail}>성별: {pet.gender === "female" ? "여자" : "남자"}</CareText><CareText style={styles.detail}>나이: {pet.age}살</CareText><CareText style={styles.detail}>중성화 여부: {pet.neutering ? "O" : "X"}</CareText></View>
@@ -44,7 +44,7 @@ export function RouteMap({ points = [], height = 210 }: { points?: EmergencyMapR
     const focused = useIsFocused();
     const key = String(Constants.expoConfig?.extra?.kakaoNativeAppKey ?? "");
     const map = (full: boolean) => <View style={{ "flex": full ? 1 : undefined, "height": full ? undefined : height, "borderRadius": 12, "overflow": "hidden", "backgroundColor": "#272727", "marginBottom": full ? 0 : 12 }}>
-        {key && !error ? <KakaoMapView style={StyleSheet.absoluteFill} appKey={key} active={focused && (full || !expanded)} routeCoordinates={points} onMapError={event => setError(event.nativeEvent.message)} /> : <View style={{ "flex": 1, "alignItems": "center", "justifyContent": "center", "padding": 20 }}><CareText style={{ "color": "#FFF", "textAlign": "center" }}>{error || "지도를 표시할 수 없어요."}</CareText></View>}
+        {key && !error ? <KakaoMapView style={StyleSheet.absoluteFill} appKey={key} active={focused && (full || !expanded)} routeCoordinates={points} onMapError={event => setError(event.nativeEvent.message)} /> : <View style={{ "flex": 1, "alignItems": "center", "justifyContent": "center", "padding": 20 }}><CareText style={{ "color": "#FFF", "textAlign": "center" }}>{"지도를 불러오지 못했어요. 잠시 후 다시 시도해주세요."}</CareText></View>}
         <Pressable accessibilityRole="button" accessibilityLabel={full ? "지도 닫기" : "지도 확대"} onPress={() => setExpanded(!full)} style={{ "position": "absolute", "right": 12, "bottom": 12, "width": 30, "height": 30, "borderRadius": 15, "alignItems": "center", "justifyContent": "center", "backgroundColor": "#FFF" }}>{full ? <CareText>×</CareText> : <Expand />}</Pressable>
     </View>;
     return <>{map(false)}<Modal visible={expanded} animationType="slide" onRequestClose={() => setExpanded(false)}>{map(true)}</Modal></>;

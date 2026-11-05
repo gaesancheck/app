@@ -9,7 +9,13 @@ import useCareData from "@/modules/useCareData";
 import { careData } from "@/modules/careData";
 import { APIMy } from "@/modules/rest/my";
 import session from "@/modules/session";
-import userData, { SAVE_DEFAULT } from "@/modules/userData";
+import userData from "@/modules/userData";
+import { isValidMonthDay } from "@/modules/petBirthday";
+import { emergencyService } from "@/modules/emergencyService";
+import { communityData } from "@/modules/communityData";
+import { APIOnboarding } from "@/modules/rest/onboarding";
+import { accountStorageKey } from "@/modules/accountStorage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Page() {
     const { data, failed, retry } = useCareData();
@@ -22,8 +28,12 @@ export default function Page() {
             if (confirm === "delete") {
                 const response = await APIMy.deleteMyAccount();
                 if (!response.success) throw new Error(response.data.message);
+                await emergencyService.deleteAccountData();
+                await communityData.clear();
+                await APIOnboarding.clear();
+                await AsyncStorage.removeItem(await accountStorageKey("walkRecordSearchHistory"));
                 await careData.clear();
-                await userData.set(SAVE_DEFAULT);
+                await userData.clear();
             } else {
                 await userData.set({ ...await userData.get(), "loggedIn": false });
             }
@@ -39,7 +49,7 @@ export default function Page() {
             </View>
             <View><CareText style={{ "fontSize": 17, "color": "#000", "marginBottom": 12 }}>반려동물 정보</CareText>
                 <CareRow title="반려견 추가하기" onPress={() => router.push("/(tabs)/mypage/pet")} />
-                {data.pets.map(pet => <CareRow key={pet.id} title={pet.name} subtitle={pet.birth ? dayjs(pet.birth).format("YYYY.MM.DD") : "생일 미등록"} picture={pet.picture} avatar onPress={() => router.push({ "pathname": "/(tabs)/mypage/pet", "params": { "id": pet.id } })} />)}
+                {data.pets.map(pet => <CareRow key={pet.id} title={pet.name} subtitle={pet.birth ? isValidMonthDay(pet.birth) ? pet.birth : dayjs(pet.birth).format("YYYY.MM.DD") : "생일 미등록"} picture={pet.picture} avatar onPress={() => router.push({ "pathname": "/(tabs)/mypage/pet", "params": { "id": pet.id } })} />)}
             </View>
             <View><CareText style={{ "fontSize": 17, "color": "#000", "marginBottom": 12 }}>문의하러가기</CareText>
                 <CareRow title="문의 페이지" onPress={() => router.push("/(tabs)/mypage/contact")} />
@@ -55,8 +65,8 @@ export default function Page() {
             <Pressable onPress={() => setConfirm("delete")} accessibilityRole="button" hitSlop={8}><CareText style={{ "fontSize": 12, "color": "#9A9A9A" }}>계정 탈퇴</CareText></Pressable>
         </View>
         <Dialog visible={confirm !== null} onClose={() => !busy && setConfirm(null)} dismissOnBackdropPress={!busy} buttons={[
-            { "label": confirm === "delete" ? "기기 정보 삭제" : "로그아웃", "disabled": busy, "onPress": () => void leave() },
+            { "label": confirm === "delete" ? "회원 탈퇴" : "로그아웃", "disabled": busy, "onPress": () => void leave() },
             { "label": "그만두기", "variant": "outline", "disabled": busy, "onPress": () => setConfirm(null) },
-        ]}>{confirm === "delete" ? "이 기기에 저장된 정보를 삭제할까요?\n서버 계정 탈퇴는 아직 지원하지 않아요." : "계정을 로그아웃하시겠어요?"}</Dialog>
+        ]}>{confirm === "delete" ? "계정을 탈퇴하시겠어요?\n탈퇴하면 회원님의 정보가 삭제됩니다." : "계정을 로그아웃하시겠어요?"}</Dialog>
     </CareScreen>;
 }

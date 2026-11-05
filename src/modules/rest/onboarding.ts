@@ -1,9 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Crypto from "expo-crypto";
-import dayjs from "dayjs";
 import type { RESTResponse } from ".";
 import session from "../session";
 import { careData, newPet, type Pet } from "../careData";
+import { isValidMonthDay } from "../petBirthday";
 
 export const ONBOARDING_AGE_GROUPS = ["0-3살", "4-6살", "7-9살", "9-12살", "13살 이상"] as const;
 export const ONBOARDING_WALK_DURATIONS = ["30분 미만", "30분-1시간", "1시간-1시간 30분", "1시간 30분-2시간", "2시간 이상"] as const;
@@ -58,6 +58,10 @@ function unauthorized(): RESTResponse<never, APIError> {
 
 // Local mock adapters. Replace these bodies with the documented REST endpoints when available.
 export const APIOnboarding = {
+    async clear(): Promise<void> {
+        const current = await session.get();
+        if (current) await AsyncStorage.removeItem(await storageKey(current.jwt));
+    },
     async getStatus(): Promise<RESTResponse<APIOnboardingStatus, APIError>> {
         // GET /v1/me/onboarding — Authorization: Bearer <app JWT>
         const current = await session.get();
@@ -80,19 +84,19 @@ export const APIOnboarding = {
             || !ONBOARDING_WALK_CONDITIONS.includes(data.walk_condition)) return invalid("설문 항목을 모두 선택해주세요.");
         const region = data.region.trim();
         if (!region || region.length > 100) return invalid("거주 지역을 1~100자로 입력해주세요.");
-        const pet = { ...data.pet, "name": data.pet.name.trim(), "type": data.pet.type.trim(), "diseases": data.pet.diseases.trim(), "birth": data.pet.birth.replace(/[.\-/]/g, "") };
+        const pet = { ...data.pet, "name": data.pet.name.trim(), "type": data.pet.type.trim(), "diseases": data.pet.diseases.trim(), "birth": data.pet.birth.trim() };
         if (!pet.name || pet.name.length > 30 || !pet.type || pet.type.length > 50) return invalid("강아지 이름과 종을 확인해주세요.");
         if (pet.gender !== "female" && pet.gender !== "male") return invalid("성별을 선택해주세요.");
         if (!Number.isInteger(pet.age) || pet.age < 0 || pet.age > 99) return invalid("나이를 0~99살 사이로 입력해주세요.");
-        if (!/^\d{8}$/.test(pet.birth) || dayjs(pet.birth).format("YYYYMMDD") !== pet.birth || dayjs(pet.birth).isAfter(dayjs(), "day")) {
-            return invalid("생일을 YYYY.MM.DD 형식으로 입력해주세요. 미래 날짜는 사용할 수 없어요.");
+        if (!isValidMonthDay(pet.birth)) {
+            return invalid("생일을 올바른 MM.DD 형식으로 입력해주세요.");
         }
         if (typeof pet.neutering !== "boolean" || !pet.diseases || pet.diseases.length > 300) return invalid("중성화 여부와 질병 여부를 입력해주세요. 질병이 없다면 '없음'으로 입력해주세요.");
         const answers: CompleteOnboardingRequest = { ...data, "region": region, "pet": pet };
         const status: APIOnboardingStatus = { "needs_onboarding": false, "answers": answers, "completed_at": Date.now() };
         await careData.update(saved => ({
             ...saved,
-            "pets": saved.pets.length ? saved.pets.map((existing, index) => index === 0 ? { ...existing, ...pet } : existing) : [{ ...newPet(), ...pet }],
+            "pets": saved.pets.length ? saved.pets.map((existing, index) => index === 0 ? { ...existing, ...pet, "walkDuration": answers.walk_duration, "walkCondition": answers.walk_condition } : existing) : [{ ...newPet(), ...pet, "walkDuration": answers.walk_duration, "walkCondition": answers.walk_condition }],
         }));
         await AsyncStorage.setItem(await storageKey(current.jwt), JSON.stringify(status));
         await session.set({ ...current, "needsOnboarding": false });

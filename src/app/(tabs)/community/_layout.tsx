@@ -8,6 +8,7 @@ export default function CommunityLayout() {
     const colors = useChooseByScheme(LightColors, DarkColors);
 
     return <Stack screenOptions={{
+        "headerShown": false,
         "contentStyle": {
             "backgroundColor": colors.background
         }

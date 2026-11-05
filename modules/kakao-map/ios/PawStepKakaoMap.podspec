@@ -13,4 +13,5 @@ Pod::Spec.new do |s|
   s.dependency 'ExpoModulesCore'
   s.dependency 'KakaoMapsSDK', '2.12.19'
   s.source_files = '**/*.swift'
+  s.resource_bundles = { 'PawStepKakaoMap' => ['Resources/*.png'] }
 end

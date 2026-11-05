@@ -18,10 +18,17 @@ final class KakaoMapView: ExpoView, MapControllerDelegate {
   private var container: KMViewContainer?
   private var authenticated = false
   private var isForeground = UIApplication.shared.applicationState == .active
+  private var lockedScrollViews: [(UIScrollView, Bool)] = []
 
   required init(appContext: AppContext? = nil) {
     super.init(appContext: appContext)
     clipsToBounds = true
+    let touchObserver = MapTouchObserver(target: nil, action: nil)
+    touchObserver.cancelsTouchesInView = false
+    touchObserver.onTouchChange = { [weak self] touching in
+      self?.setParentScrollingLocked(touching)
+    }
+    addGestureRecognizer(touchObserver)
     NotificationCenter.default.addObserver(self, selector: #selector(background),
       name: UIApplication.willResignActiveNotification, object: nil)
     NotificationCenter.default.addObserver(self, selector: #selector(foreground),
@@ -29,6 +36,7 @@ final class KakaoMapView: ExpoView, MapControllerDelegate {
   }
 
   deinit {
+    setParentScrollingLocked(false)
     NotificationCenter.default.removeObserver(self)
     controller?.pauseEngine()
     controller?.resetEngine()
@@ -47,6 +55,7 @@ final class KakaoMapView: ExpoView, MapControllerDelegate {
 
   func updateState() {
     let visible = active && isForeground && window != nil
+    if !visible { setParentScrollingLocked(false) }
     if controller == nil && visible && !appKey.isEmpty && bounds.width > 0 && bounds.height > 0 {
       SDKInitializer.InitSDK(appKey: appKey)
       let mapContainer = KMViewContainer(frame: bounds)
@@ -115,7 +124,7 @@ final class KakaoMapView: ExpoView, MapControllerDelegate {
 
     let labels = map.getLabelManager()
     _ = labels.addLabelLayer(option: LabelLayerOptions(layerID: "walk-endpoints",
-      competitionType: .none, competitionUnit: .poi, orderType: .rank, zOrder: 100))
+      competitionType: .none, competitionUnit: .poi, orderType: .rank, zOrder: 10000))
     for (id, title, color) in [("start", "출발", UIColor.systemGreen), ("end", "도착", UIColor.systemRed)] {
       let icon = PoiIconStyle(symbol: endpointImage(title: title, color: color),
         anchorPoint: CGPoint(x: 0.5, y: 1))
@@ -169,22 +178,90 @@ final class KakaoMapView: ExpoView, MapControllerDelegate {
     }
   }
 
-  private func endpointImage(title: String, color: UIColor) -> UIImage {
-    UIGraphicsImageRenderer(size: CGSize(width: 56, height: 42)).image { _ in
-      color.setFill()
-      UIBezierPath(roundedRect: CGRect(x: 0, y: 0, width: 56, height: 34), cornerRadius: 12).fill()
-      let tip = UIBezierPath()
-      tip.move(to: CGPoint(x: 22, y: 32))
-      tip.addLine(to: CGPoint(x: 28, y: 42))
-      tip.addLine(to: CGPoint(x: 34, y: 32))
-      tip.close()
-      tip.fill()
-      let paragraph = NSMutableParagraphStyle()
-      paragraph.alignment = .center
-      (title as NSString).draw(in: CGRect(x: 0, y: 7, width: 56, height: 24), withAttributes: [
-        .font: UIFont.boldSystemFont(ofSize: 15), .foregroundColor: UIColor.white,
-        .paragraphStyle: paragraph
-      ])
+  private func setParentScrollingLocked(_ locked: Bool) {
+    if locked {
+      guard lockedScrollViews.isEmpty else { return }
+      var ancestor = superview
+      while let view = ancestor {
+        if let scrollView = view as? UIScrollView {
+          lockedScrollViews.append((scrollView, scrollView.isScrollEnabled))
+          scrollView.isScrollEnabled = false
+        }
+        ancestor = view.superview
+      }
+    } else {
+      for (scrollView, wasEnabled) in lockedScrollViews {
+        scrollView.isScrollEnabled = wasEnabled
+      }
+      lockedScrollViews.removeAll()
     }
   }
+
+  private func endpointImage(title: String, color: UIColor) -> UIImage {
+    let moduleBundle = Bundle(for: KakaoMapView.self)
+    let resourceBundle = moduleBundle.url(forResource: "PawStepKakaoMap", withExtension: "bundle")
+      .flatMap { Bundle(url: $0) } ?? moduleBundle
+    let pin = UIImage(named: "location", in: resourceBundle, compatibleWith: nil)?
+      .withTintColor(color, renderingMode: .alwaysOriginal)
+    return UIGraphicsImageRenderer(size: CGSize(width: 48, height: 73)).image { _ in
+      // Keep the text above the original location.svg silhouette.
+      UIColor.white.setFill()
+      UIBezierPath(roundedRect: CGRect(x: 2, y: 0, width: 44, height: 24), cornerRadius: 12).fill()
+      let paragraph = NSMutableParagraphStyle()
+      paragraph.alignment = .center
+      (title as NSString).draw(in: CGRect(x: 2, y: 3, width: 44, height: 20), withAttributes: [
+        .font: UIFont.boldSystemFont(ofSize: 14), .foregroundColor: color,
+        .paragraphStyle: paragraph
+      ])
+      pin?.draw(in: CGRect(x: 8, y: 28, width: 32, height: 44.8))
+    }
+  }
+}
+
+/// Observes map touches without consuming the SDK's pan, pinch or tap gestures.
+private final class MapTouchObserver: UIGestureRecognizer, UIGestureRecognizerDelegate {
+  var onTouchChange: ((Bool) -> Void)?
+  private var activeTouches = Set<UITouch>()
+
+  override init(target: Any?, action: Selector?) {
+    super.init(target: target, action: action)
+    delegate = self
+    delaysTouchesBegan = false
+    delaysTouchesEnded = false
+  }
+
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+    activeTouches.formUnion(touches)
+    onTouchChange?(true)
+    state = state == .possible ? .began : .changed
+  }
+
+  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+    state = .changed
+  }
+
+  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+    activeTouches.subtract(touches)
+    if activeTouches.isEmpty {
+      onTouchChange?(false)
+      state = .ended
+    }
+  }
+
+  override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+    activeTouches.removeAll()
+    onTouchChange?(false)
+    state = .cancelled
+  }
+
+  override func reset() {
+    activeTouches.removeAll()
+    onTouchChange?(false)
+    super.reset()
+  }
+
+  override func canBePrevented(by preventingGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+
+  func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+    shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool { true }
 }

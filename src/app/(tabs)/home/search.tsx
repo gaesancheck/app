@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Keyboard, Platform, ScrollView, StyleSheet, Text, TextInput, TextInputInstance, TouchableOpacity, View, } from "react-native";
 import type { EdgeInsets } from "react-native-safe-area-context";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
+import { accountStorageKey } from "@/modules/accountStorage";
+import { router, useFocusEffect } from "expo-router";
 import { Colors, DarkColors, LightColors } from "@/../app.config";
 import useChooseByScheme from "@/modules/useChooseByScheme";
 import { haptics } from "@/modules/haptics";
@@ -13,7 +14,11 @@ import SvgSearch from "@/assets/svg/home-search/search.svg";
 import SvgHistory from "@/assets/svg/home-search/history.svg";
 import SvgRemove from "@/assets/svg/home-search/remove.svg";
 
-const HISTORY_STORAGE_KEY = "walkRecordSearchHistory";
+import SmallDiary from "@/components/SmallDiary";
+import userData from "@/modules/userData";
+import SvgEmpty from "@/assets/svg/home-record/empty.svg";
+
+const HISTORY_STORAGE_PREFIX = "walkRecordSearchHistory";
 
 export default function Page() {
     const safeArea = useSafeAreaInsets();
@@ -22,6 +27,15 @@ export default function Page() {
     const inputRef = useRef<TextInputInstance>(null);
     const storageWrite = useRef<Promise<void>>(Promise.resolve());
     const [query, setQuery] = useState("");
+    const [submittedQuery, setSubmittedQuery] = useState("");
+    const [records, setRecords] = useState<WalkRecord[]>([]);
+    useFocusEffect(useCallback(() => {
+        let active = true;
+        void userData.get().then(data => { if (active) setRecords(data.walkRecords); }).catch(() => setStorageError("산책 기록을 불러오지 못했어요."));
+        return () => { active = false; };
+    }, []));
+    const results = records.filter(record => `${record.content} ${record.destination} ${record.date}`.toLocaleLowerCase().includes(submittedQuery.toLocaleLowerCase())).sort((a, b) => b.date.localeCompare(a.date));
+    const openRecord = (record: WalkRecord, field: string) => router.push({ "pathname": "/(tabs)/home/write", "params": { "recordId": record.id, "field": field } });
     const [history, setHistory] = useState<string[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
     const [storageError, setStorageError] = useState("");
@@ -31,7 +45,7 @@ export default function Page() {
 
         async function loadHistory() {
             try {
-                const stored = await AsyncStorage.getItem(HISTORY_STORAGE_KEY);
+                const stored = await AsyncStorage.getItem(await accountStorageKey(HISTORY_STORAGE_PREFIX));
                 const parsed: unknown = stored ? JSON.parse(stored) : [];
                 if (active && Array.isArray(parsed)) {
                     setHistory([...new Set(parsed.filter((item): item is string =>
@@ -56,7 +70,7 @@ export default function Page() {
         setStorageError("");
         storageWrite.current = storageWrite.current
             .catch(() => undefined)
-            .then(() => AsyncStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(nextHistory)));
+            .then(async () => AsyncStorage.setItem(await accountStorageKey(HISTORY_STORAGE_PREFIX), JSON.stringify(nextHistory)));
         void storageWrite.current.catch(() => {
             setStorageError("검색 기록을 저장하지 못했어요.");
         });
@@ -66,6 +80,7 @@ export default function Page() {
         const term = text.trim();
         if (!term || !isLoaded) return;
         setQuery(term);
+        setSubmittedQuery(term);
         saveHistory([term, ...history.filter(item => item !== term)].slice(0, 20));
         Keyboard.dismiss();
         haptics.light();
@@ -91,7 +106,7 @@ export default function Page() {
                     accessibilityLabel="산책 기록 검색"
                     style={styles.searchInput}
                     value={query}
-                    onChangeText={setQuery}
+                    onChangeText={text => { setQuery(text); setSubmittedQuery(""); }}
                     placeholder="검색할 내용을 입력하세요"
                     placeholderTextColor="#99A097"
                     selectionColor={colors.green_light2}
@@ -114,8 +129,8 @@ export default function Page() {
             </View>
         </View>
         <View style={styles.historyHeader}>
-            <Text style={styles.historyHeading}>검색 기록</Text>
-            <TouchableOpacity
+            <Text style={styles.historyHeading}>{submittedQuery ? `전체 결과: ${results.length}개` : "검색 기록"}</Text>
+            {!submittedQuery && <TouchableOpacity
                 accessibilityRole="button"
                 accessibilityLabel="검색 기록 전체 삭제"
                 hitSlop={7}
@@ -123,16 +138,16 @@ export default function Page() {
                 onPress={() => saveHistory([])}
             >
                 <Text style={styles.historyHeading}>전체 삭제</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>}
         </View>
         <ScrollView
             style={styles.historyList}
-            contentContainerStyle={styles.historyContent}
+            contentContainerStyle={[styles.historyContent, !!submittedQuery && results.length === 0 && styles.emptyContent]}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             showsVerticalScrollIndicator={false}
         >
-            {history.map(term => <View key={term} style={styles.historyRow}>
+            {submittedQuery ? (results.length ? results.map(record => <SmallDiary key={record.id} data={record} styles={{ "marginHorizontal": 0 }} onPressContent={() => openRecord(record, "content")} onPressPicture={() => openRecord(record, "picture")} onPressWeather={() => openRecord(record, "weather")} />) : <View style={styles.empty}><SvgEmpty /><Text style={styles.emptyText}>검색 결과가 없어요.</Text></View>) : history.map(term => <View key={term} style={styles.historyRow}>
                 <TouchableOpacity
                     accessibilityRole="button"
                     accessibilityLabel={`${term} 다시 검색`}
@@ -228,6 +243,9 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
         "gap": 13,
         "paddingBottom": 24,
     },
+    "emptyContent": { "flexGrow": 1, "justifyContent": "center", "paddingBottom": 60 },
+    "empty": { "alignItems": "center", "gap": 47 },
+    "emptyText": { "fontFamily": "Ownglyph PDH", "fontSize": 20, "color": "#474747", "letterSpacing": 0.6 },
     "historyRow": {
         "minHeight": 28,
         "flexDirection": "row",

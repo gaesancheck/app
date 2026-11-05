@@ -111,7 +111,7 @@ Content-Type: `application/json`
 
 - `GET /v1/me/onboarding`: 앱 JWT 인증 후 `{ "needs_onboarding": true }` 또는 완료 상태를 반환한다.
 - `PUT /v1/me/onboarding`: 앱 JWT 인증 후 나이 구간·산책량·산책 컨디션·지역·반려견 정보를 저장한다. 요청 타입은 `CompleteOnboardingRequest`이며 예시는 아래와 같다. 완료 응답은 `{ "needs_onboarding": false, "answers": <저장된 요청>, "completed_at": 1793836800000 }`이다. `completed_at`은 밀리초 Unix timestamp다.
-- 인증 실패는 401, 입력 검증 실패는 400과 `{ "status": 400, "message": "오류 안내" }`를 반환한다. 생일은 `YYYYMMDD`로 정규화하고 실제 날짜이며 미래가 아닌지 검증한다. 반려견 정보는 마이 화면에서도 사용한다.
+- 인증 실패는 401, 입력 검증 실패는 400과 `{ "status": 400, "message": "오류 안내" }`를 반환한다. 생일은 연도 없이 `MM.DD`로 저장하고 월별 유효한 일자를 검증한다. 연도가 없으므로 2월 29일을 허용한다. 반려견 정보는 마이 화면에서도 사용한다.
 
 ```json
 {
@@ -124,7 +124,7 @@ Content-Type: `application/json`
     "type": "푸들",
     "gender": "female",
     "age": 2,
-    "birth": "2024.03.01",
+    "birth": "03.01",
     "neutering": true,
     "diseases": "없음"
   }

@@ -105,14 +105,14 @@ export async function signInWithOAuth(
             throw new Error("로그인 서버의 응답 형식이 올바르지 않습니다.");
         }
 
-        const [previousSession, savedUser] = await Promise.all([session.get(), userData.get()]);
+        const previousSession = await session.get();
         await session.set({
             jwt: data.access_token,
             ...(data.needs_onboarding === undefined ? {} : { "needsOnboarding": data.needs_onboarding }),
             ...(data.expires_in === -1 ? {} : { expiresAt: Date.now() + data.expires_in * 1000 }),
         });
         try {
-            await userData.set({ ...savedUser, loggedIn: true });
+            await userData.set({ ...await userData.get(), "loggedIn": true });
         } catch (error) {
             if (previousSession) await session.set(previousSession);
             else await session.clear();

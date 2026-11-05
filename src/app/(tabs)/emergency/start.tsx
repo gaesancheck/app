@@ -34,9 +34,9 @@ export default function Page() {
             <CareText style={{ "color": "#E36163", "fontSize": 12, "textAlign": "center", "marginBottom": 16 }}>주의! 실종 모드는 긴급할 때만 사용하여 주세요.</CareText>
             <View style={{ "marginHorizontal": 12 }}><CareButton onPress={() => setConfirm(true)}>실종모드 켜기</CareButton></View>
             <Dialog visible={confirm} onClose={() => setConfirm(false)} buttons={[
-                { "label": "정보 입력", "onPress": () => { setConfirm(false); router.push({ "pathname": "/(tabs)/emergency/setup", "params": { "petId": pet.id } }); } },
+                { "label": "모드 켜기", "onPress": () => { setConfirm(false); router.push({ "pathname": "/(tabs)/emergency/setup", "params": { "petId": pet.id } }); } },
                 { "label": "그만두기", "variant": "outline", "onPress": () => setConfirm(false) },
-            ]} containerStyle={{ "borderWidth": 0.7, "paddingHorizontal": 16, "paddingVertical": 18 }}><View style={{ "alignItems": "center", "gap": 10 }}><Warning /><CareText style={{ "fontSize": 15, "color": "#E36163" }}>경고!</CareText><CareText style={{ "fontSize": 15, "textAlign": "center" }}>실종모드를 켤까요?{"\n"}현재 실종 정보는 이 기기에 저장돼요. 커뮤니티 등록과 제보 알림은 아직 지원하지 않아요.</CareText></View></Dialog>
+            ]} containerStyle={{ "borderWidth": 0.7, "paddingHorizontal": 16, "paddingVertical": 18 }}><View style={{ "alignItems": "center", "gap": 10 }}><Warning /><CareText style={{ "fontSize": 15, "color": "#E36163" }}>경고!</CareText><CareText style={{ "fontSize": 15, "textAlign": "center" }}>진짜로 실종모드를 켤까요? 실종모드는 긴급 상황 시 반려견의 빠른 수색을 위해 존재합니다. 신중히 사용하여주세요.</CareText></View></Dialog>
         </>}
     </CareScreen>;
 }

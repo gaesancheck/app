@@ -5,7 +5,8 @@ import dayjs from "dayjs";
 import { CareScreen, CareText, CareButton, Field, LoadingState, ErrorState, showCareError } from "@/components/CareUI";
 import { PetCard, RouteMap } from "@/components/EmergencyUI";
 import useCareData from "@/modules/useCareData";
-import { careData, type MissingPet } from "@/modules/careData";
+import { type MissingPet } from "@/modules/careData";
+import { emergencyService } from "@/modules/emergencyService";
 
 export default function Page() {
     const { petId } = useLocalSearchParams<{ petId: string }>();
@@ -28,7 +29,7 @@ export default function Page() {
         if (!preview || busy) return;
         setBusy(true);
         try {
-            await careData.update(current => ({ ...current, "emergency": preview, "checks": [] }));
+            await emergencyService.registerMissing(preview);
             router.dismissTo("/(tabs)/emergency/checklist");
         } catch (error) { showCareError(error); } finally { setBusy(false); }
     };

@@ -56,6 +56,7 @@ const config: ExpoConfig = {
         "appleTeamId": "6N4XWB3QSL",
         "icon": "./assets/app.icon",
         "infoPlist": {
+            "NSLocationWhenInUseUsageDescription": "산책 경로와 이동 거리를 기록하려면 위치 접근 권한이 필요해요.",
             "NSPhotoLibraryUsageDescription": "일기에 사진 첨부 등의 기능을 이용하려면 사진 접근 권한이 필요해요."
         }
     },
@@ -79,6 +80,9 @@ const config: ExpoConfig = {
         "./plugins/with-google-modular-headers",
         "./plugins/with-native-social-login",
         "expo-router",
+        ["expo-location", {
+            "locationWhenInUsePermission": "산책 경로와 이동 거리를 기록하려면 위치 접근 권한이 필요해요."
+        }],
         [
             "expo-splash-screen",
             {

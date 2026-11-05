@@ -6,7 +6,7 @@ import { EmergencyNav, PetCard } from "@/components/EmergencyUI";
 import Dialog from "@/components/Dialog";
 import Warning from "@/assets/svg/account-emergency/warning.svg";
 import useCareData from "@/modules/useCareData";
-import { careData } from "@/modules/careData";
+import { emergencyService } from "@/modules/emergencyService";
 import Siren from "@/assets/svg/account-emergency/siren.svg";
 
 export default function Page() {
@@ -17,7 +17,8 @@ export default function Page() {
         if (busy) return;
         setBusy(true);
         try {
-            await careData.update(current => ({ ...current, "emergency": null, "checks": [] }));
+            if (!data?.emergency) return;
+            await emergencyService.resolveMissing(data.emergency.id);
             setConfirm(false);
             router.dismissTo("/(tabs)/emergency");
         } catch (error) { showCareError(error); } finally { setBusy(false); }
@@ -28,7 +29,7 @@ export default function Page() {
             <View style={{ "alignItems": "center", "gap": 22, "marginBottom": 31 }}><View style={{ "width": 100, "height": 100, "borderRadius": 50, "backgroundColor": "#FFF", "alignItems": "center", "justifyContent": "center" }}><Siren /></View><CareText style={{ "fontSize": 25 }}>실종모드를 종료할까요?</CareText></View>
             <PetCard pet={data.emergency} />
             <CareText style={{ "fontSize": 25, "textAlign": "center", "marginTop": 35, "marginBottom": 25 }}>아이를 찾으셨나요? 축하드려요!</CareText>
-            <CareText style={{ "textAlign": "center", "lineHeight": 23, "marginBottom": 35 }}>실종은 줄일 수 있어요. 여기 가족을 잃은{"\n"}아이들을 위한 체크를 확인해 주세요!</CareText>
+            <CareText style={{ "textAlign": "center", "lineHeight": 23, "marginBottom": 35 }}>실종모드 종료 이후에도 아직 가족을 잃은 아이들을 위해 제보에 힘써주세요!</CareText>
             <CareButton onPress={() => setConfirm(true)}>실종모드 종료하기</CareButton>
             <Dialog visible={confirm} dismissOnBackdropPress={!busy} onClose={() => !busy && setConfirm(false)} buttons={[
                 { "label": "모드 끄기", "disabled": busy, "onPress": () => void stop() },

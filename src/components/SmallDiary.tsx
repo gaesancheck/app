@@ -1,9 +1,10 @@
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native"
+import { useState } from "react";
 import { Colors, DarkColors, LightColors } from "../../app.config";
 import useChooseByScheme from "@/modules/useChooseByScheme";
 import dayjs from "dayjs";
 import 'dayjs/locale/ko';
-import { SvgProps } from "react-native-svg";
+import Svg, { Line, SvgProps } from "react-native-svg";
 
 import SvgCamera from '@/assets/svg/camera.svg';
 import SvgMinus from '@/assets/svg/minus.svg';
@@ -26,7 +27,7 @@ type Props = {
     onPressDelete?: () => void
 }
 
-const WEATHER: Record<string, React.FC<SvgProps>> = {
+export const WEATHER: Record<string, React.FC<SvgProps>> = {
     "clear": SvgClear,
     "cloudy": SvgCloudy,
     "mostly_cloudy": SvgMostlyCloudy,
@@ -41,6 +42,7 @@ export default function SmallDiary(props: Props) {
     const customStyles = props.styles;
     const colors = useChooseByScheme(LightColors, DarkColors);
     const styles = getStyles(colors);
+    const [contentLines, setContentLines] = useState<{ x: number; y: number; width: number; height: number }[]>([]);
 
     const WeatherIcon: React.FC<SvgProps> | undefined = WEATHER[data.weather as string];
 
@@ -49,17 +51,18 @@ export default function SmallDiary(props: Props) {
             <Pressable onPress={onPressPicture}>
                 {data.picture ? <Image
                     source={{ "uri": data.picture }}
+                    style={styles.picture}
                 /> : <View style={styles.noPicture}>
                     <SvgCamera width={20} height={17} />
                     <Text style={styles.noPictureText}>사진을 첨부해주세요</Text>
                 </View>}
             </Pressable>
             <View style={styles.diaryExtras}>
-                <Text style={styles.infoText}>{dayjs(data.date, "YYYYMMDD").locale("ko-KR").format("YY년 MM월 DD일 dddd")}</Text>
-                {!data.weather ?
-                    <View style={styles.weatherIcon}>
+                <Text style={styles.infoText}>{dayjs(data.date, "YYYYMMDD").locale("ko").format("YY년 MM월 DD일 dddd")}</Text>
+                {WeatherIcon ?
+                    <Pressable onPress={onPressWeather} style={styles.weatherIcon}>
                         <WeatherIcon />
-                    </View> :
+                    </Pressable> :
                     <Pressable onPress={onPressWeather} style={styles.noWeather}>
                         <SvgPlus width={11} height={11} color="#474747" />
                     </Pressable>
@@ -70,7 +73,22 @@ export default function SmallDiary(props: Props) {
             </TouchableOpacity>}
         </View>
         <Pressable style={styles.diaryContent} onPress={onPressContent}>
-            <Text style={styles.diaryContentText}>{data.content}</Text>
+            <Text style={styles.diaryContentText} onTextLayout={event => setContentLines(event.nativeEvent.lines)}>
+                {data.content || "오늘의 산책을 기록해주세요"}
+            </Text>
+            <Svg pointerEvents="none" accessible={false} width="100%" height="100%" style={StyleSheet.absoluteFill}>
+                {contentLines.map((line, index) => line.width > 0 && <Line
+                    key={index}
+                    x1={line.x}
+                    x2={line.x + line.width}
+                    y1={line.y + line.height + 2}
+                    y2={line.y + line.height + 2}
+                    stroke="#474747"
+                    strokeWidth={0.7}
+                    strokeDasharray="1 3"
+                    strokeLinecap="round"
+                />)}
+            </Svg>
         </Pressable>
     </View>;
 }
@@ -83,6 +101,8 @@ const getStyles = (colors: Colors) => StyleSheet.create({
         "marginHorizontal": 19,
         "paddingHorizontal": 15,
         "paddingVertical": 14,
+        "backgroundColor": "#FAFBF7",
+        "minHeight": 197,
         "borderRadius": 12
     },
     "noPicture": {
@@ -104,7 +124,9 @@ const getStyles = (colors: Colors) => StyleSheet.create({
         "color": "#9f9f9f"
     },
     "picture": {
-        "borderRadius": 10
+        "borderRadius": 10,
+        "width": 85,
+        "height": 85
     },
     "diaryInfo": {
         "gap": 10,
@@ -147,13 +169,11 @@ const getStyles = (colors: Colors) => StyleSheet.create({
         "marginTop": 10
     },
     "diaryContentText": {
-        "fontSize": 14,
+        "fontSize": 16,
         "fontFamily": "Ownglyph PDH",
         "color": "#474747",
-        "textDecorationStyle": "dotted",
-        "textDecorationLine": "underline",
-        "textDecorationColor": "#474747",
-        "lineHeight": 17,
+        "lineHeight": 25,
+        "paddingBottom": 4,
         "textAlignVertical": "top"
     },
     "noWeather": {

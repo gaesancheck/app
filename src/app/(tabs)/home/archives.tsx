@@ -23,18 +23,14 @@ export default function Page() {
     const [currentYear, setCurrentYear] = useState(now.year());
     const [currentMonth, setCurrentMonth] = useState(now.month());
 
-    const firstWeekday = new Date(currentYear, currentMonth, 1).getDay();
-    const dayCount = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const cellCount = Math.ceil((firstWeekday + dayCount) / 7) * 7;
-
     const [data, setData] = useState<UserData>(SAVE_DEFAULT);
-    const [diary, setDiary] = useState<WalkRecord>();
     const [isDeletingMode, setIsDeletingMode] = useState(false);
 
     useFocusEffect(
         useCallback(() => {
             (async () => {
-                setData(await userData.get());
+                const fresh = await userData.get();
+                setData(fresh);
             })();
         }, [])
     );
@@ -86,16 +82,19 @@ export default function Page() {
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
         >
-            {data.walkRecords.map(v => <SmallDiary
+            {data.walkRecords.filter(v => dayjs(v.date).year() === currentYear && dayjs(v.date).month() === currentMonth).sort((a, b) => b.date.localeCompare(a.date)).map(v => <SmallDiary
                 showDeleteButton={isDeletingMode}
                 onPressDelete={async () => {
                     await userData.update("walkRecords", data.walkRecords.filter(a => a.id !== v.id));
                     setData(await userData.get());
-                    setDiary(undefined);
                 }}
                 key={v.id}
                 data={v}
+                onPressContent={() => router.push({ "pathname": "/(tabs)/home/write", "params": { "recordId": v.id, "field": "content" } })}
+                onPressPicture={() => router.push({ "pathname": "/(tabs)/home/write", "params": { "recordId": v.id, "field": "picture" } })}
+                onPressWeather={() => router.push({ "pathname": "/(tabs)/home/write", "params": { "recordId": v.id, "field": "weather" } })}
             />)}
+            {data.walkRecords.filter(v => dayjs(v.date).year() === currentYear && dayjs(v.date).month() === currentMonth).length === 0 && <Text style={styles.empty}>이 달의 산책 기록이 없어요.</Text>}
         </ScrollView>
         {isDeletingMode && <TouchableOpacity
             accessibilityRole="button"
@@ -140,8 +139,10 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
     },
     "content": {
         "paddingBottom": 20,
+        "flexGrow": 1,
         "gap": 10
     },
+    "empty": { "fontFamily": "Ownglyph PDH", "fontSize": 20, "color": "#474747", "textAlign": "center", "marginTop": 80 },
     "monthTitle": {
         "flexDirection": "row",
         "alignItems": "center",

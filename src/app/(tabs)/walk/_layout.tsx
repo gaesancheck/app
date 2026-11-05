@@ -4,10 +4,11 @@ import useChooseByScheme from "@/modules/useChooseByScheme";
 
 export const unstable_settings = { "anchor": "index" };
 
-export default function CommunityLayout() {
+export default function WalkLayout() {
     const colors = useChooseByScheme(LightColors, DarkColors);
 
     return <Stack screenOptions={{
+        "headerShown": false,
         "contentStyle": {
             "backgroundColor": colors.background
         }

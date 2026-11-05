@@ -1,8 +1,5 @@
-import { RESTResponse, REST } from '.';
+import { emergencyService } from "../emergencyService";
 
-// -------------------
-// 긴급 디자인 완성되면 수정
-// -------------------
 
 export type APIMissingPetInfo = {
     "name": string,
@@ -20,6 +17,4 @@ export type APIMissingPetInfo = {
 };
 
 
-export const APIEmergency = {
-
-}
+export const APIEmergency = emergencyService;

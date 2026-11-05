@@ -10,7 +10,6 @@ import Dropdown from "@/components/Dropdown";
 import SelectionDropdown from "@/components/SelectionDropdown";
 import { haptics } from "@/modules/haptics";
 import SmallDiary from "@/components/SmallDiary";
-import Dialog from "@/components/Dialog";
 
 import SvgArchive from '@/assets/svg/archive.svg';
 import SvgList from '@/assets/svg/list.svg';
@@ -22,7 +21,7 @@ import SvgSad from "@/assets/svg/dogs/sad.svg";
 import SvgAngry from "@/assets/svg/dogs/angry.svg";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
-const DOGS = { 5: SvgVeryGood, 4: SvgGood, 3: SvgNormal, 2: SvgSad, 1: SvgAngry };
+const DOGS = { "5": SvgVeryGood, "4": SvgGood, "3": SvgNormal, "2": SvgSad, "1": SvgAngry };
 
 export default function Page() {
     const safeArea = useSafeAreaInsets();
@@ -44,7 +43,9 @@ export default function Page() {
     useFocusEffect(
         useCallback(() => {
             (async () => {
-                setData(await userData.get());
+                const fresh = await userData.get();
+                setData(fresh);
+                setDiary(current => current ? fresh.walkRecords.find(item => item.id === current.id) : undefined);
             })();
         }, [])
     );
@@ -102,14 +103,11 @@ export default function Page() {
                         {Array.from({ "length": cellCount }, (_, i) => {
                             const day = i - firstWeekday + 1;
                             const isOutsideMonth = day < 1 || day > dayCount;
-                            const isToday = day === now.date();
+                            const isToday = day === now.date() && currentMonth === now.month() && currentYear === now.year();
 
                             if (isOutsideMonth) return <View key={`calendar-${i}`} style={styles.dayCell} />
 
-                            const diary = data.walkRecords.find(v => dayjs()
-                                .set('year', currentYear)
-                                .set('month', currentMonth)
-                                .set('date', day).format("YYYYMMDD") === v.date
+                            const diary = data.walkRecords.find(v => dayjs(new Date(currentYear, currentMonth, day)).format("YYYYMMDD") === v.date
                             );
                             const Dog = diary ? DOGS[diary.rate] ?? SvgNormal : null;
 
@@ -121,7 +119,7 @@ export default function Page() {
                                 {!diary ?
                                     <Pressable
                                         style={isToday ? styles.dayCircleActive : styles.dayCircleInactive}
-                                        onPress={() => { haptics.light(); router.push("/(tabs)/home/write"); }}
+                                        onPress={() => { haptics.light(); router.push({ "pathname": "/(tabs)/home/write", "params": { "date": dayjs(new Date(currentYear, currentMonth, day)).format("YYYYMMDD") } }); }}
                                     /> :
                                     <Pressable onPress={() => {
                                         haptics.light();
@@ -141,6 +139,7 @@ export default function Page() {
                             style={styles.diaryDoneButton}
                             onPress={() => {
                                 haptics.light();
+                                setIsDeletingMode(false);
                             }}
                         >
                             <Text style={styles.diaryDoneText}>완료</Text>
@@ -149,6 +148,9 @@ export default function Page() {
                     <SmallDiary
                         showDeleteButton={isDeletingMode}
                         data={diary}
+                        onPressContent={() => router.push({ "pathname": "/(tabs)/home/write", "params": { "recordId": diary.id, "field": "content" } })}
+                        onPressPicture={() => router.push({ "pathname": "/(tabs)/home/write", "params": { "recordId": diary.id, "field": "picture" } })}
+                        onPressWeather={() => router.push({ "pathname": "/(tabs)/home/write", "params": { "recordId": diary.id, "field": "weather" } })}
                         styles={{ "marginHorizontal": 0 }}
                         onPressDelete={async () => {
                             await userData.update("walkRecords", data.walkRecords.filter(v => v.id !== diary.id));

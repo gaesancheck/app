@@ -1,6 +1,7 @@
 package expo.modules.kakaomap
 
 import android.content.Context
+import android.view.MotionEvent
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.KakaoMapSdk
@@ -22,12 +23,25 @@ class KakaoMapView(context: Context, appContext: AppContext) :
   private var mapView: MapView? = null
   private var disposed = false
 
+  override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+    when (event.actionMasked) {
+      MotionEvent.ACTION_DOWN -> parent?.requestDisallowInterceptTouchEvent(true)
+    }
+    val handled = super.dispatchTouchEvent(event)
+    when (event.actionMasked) {
+      MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
+        parent?.requestDisallowInterceptTouchEvent(false)
+    }
+    return handled
+  }
+
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
     updateState()
   }
 
   override fun onDetachedFromWindow() {
+    parent?.requestDisallowInterceptTouchEvent(false)
     mapView?.pause()
     super.onDetachedFromWindow()
   }

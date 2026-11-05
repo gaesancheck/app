@@ -7,21 +7,20 @@ import { careData } from "@/modules/careData";
 import { APIMy } from "@/modules/rest/my";
 import Avatar from "@/assets/svg/account-emergency/avatar.svg";
 import EditPhoto from "@/assets/svg/account-emergency/edit-photo.svg";
-import EyeOff from "@/assets/svg/account-emergency/eye-off.svg";
 
 export default function Page() {
     const { data, failed, retry } = useCareData();
     const [id, setId] = useState("");
     const [picture, setPicture] = useState("");
     const [busy, setBusy] = useState(false);
-    useEffect(() => { if (data) { setId(data.account.id); setPicture(data.account.profile ?? ""); } }, [data]);
+    useEffect(() => { if (data) { setId(data.account.name); setPicture(data.account.profile ?? ""); } }, [data]);
     const save = async () => {
         if (busy || !data || !id.trim()) return;
         setBusy(true);
         try {
-            const response = await APIMy.changeInfo({ "id": id.trim(), "picture": picture });
+            const response = await APIMy.changeInfo({ "name": id.trim(), "picture": picture });
             if (!response.success) throw new Error(response.data.message);
-            await careData.update(current => ({ ...current, "account": { ...current.account, "id": id.trim(), "profile": picture } }));
+            await careData.update(current => ({ ...current, "account": { ...current.account, "name": id.trim(), "profile": picture } }));
             router.back();
         } catch (error) { showCareError(error); } finally { setBusy(false); }
     };
@@ -32,11 +31,8 @@ export default function Page() {
             }}>{picture ? <Image source={{ "uri": picture }} style={{ "width": 100, "height": 100, "borderRadius": 50, "borderWidth": 1, "borderColor": careColors.green }} /> : <View style={{ "width": 100, "height": 100, "alignItems": "center", "justifyContent": "center", "borderRadius": 50, "backgroundColor": "#ECEEE6" }}><Avatar /></View>}
                 <EditPhoto style={{ "position": "absolute", "right": 0, "bottom": 0 }} />
             </Pressable>
-            <Field compact label="아이디" value={id} onChangeText={setId} autoCapitalize="none" />
-            <View><Field compact label="비밀번호" placeholder="비밀번호 변경은 준비 중이에요" value="" editable={false} secureTextEntry autoCapitalize="none" autoCorrect={false} style={{ "paddingRight": 45 }} />
-                <View style={{ "position": "absolute", "right": 12, "top": 35 }}><EyeOff /></View>
-            </View>
-            <CareText style={{ "fontSize": 13, "color": "#9A9A9A" }}>계정 정보는 이 기기에 저장돼요. 서버 계정 수정은 아직 지원하지 않아요.</CareText>
+            <Field compact label="닉네임" value={id} onChangeText={setId} autoCapitalize="none" />
+
         </>}
     </CareScreen>;
 }

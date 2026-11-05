@@ -16,11 +16,14 @@ type APIPetInfo = {
     "type": string,
     "gender": "female" | "male";
     "age": number,
-    /** YYYYMMDD */
+    /** MM.DD; legacy records may contain YYYYMMDD. */
     "birth": string,
     "neutering": boolean,
     "diseases": string,
-    "picture": string
+    "picture": string,
+    "size"?: string,
+    "walkDuration"?: string,
+    "walkCondition"?: string
 };
 
 export type APIFaQ = {
@@ -42,7 +45,8 @@ type POSTAPIContact = {
 type PUTAPIMyInfo = Partial<{
     "id": string,
     "password": string,
-    "picture": string
+    "picture": string,
+    "name": string
 }>;
 
 type PUTAPIPetInfo = Partial<APIPetInfo>;
@@ -112,42 +116,42 @@ export const APIMy = {
             "success": true,
             "headers": {},
             "data": [
-                {
-                    "id": Math.random().toString(),
-                    "name": "문의 어디서해요",
-                    "answer": "치이카와 인어 섬 가셔서 섬 주민에게 도움 받으시면 됩니다."
-                },
-                {
-                    "id": Math.random().toString(),
-                    "name": "문의 어디서해요",
-                    "answer": "치이카와 인어 섬 가셔서 섬 주민에게 도움 받으시면 됩니다."
-                },
-                {
-                    "id": Math.random().toString(),
-                    "name": "문의 어디서해요",
-                    "answer": "치이카와 인어 섬 가셔서 섬 주민에게 도움 받으시면 됩니다."
-                },
-                {
-                    "id": Math.random().toString(),
-                    "name": "문의 어디서해요",
-                    "answer": "치이카와 인어 섬 가셔서 섬 주민에게 도움 받으시면 됩니다."
-                },
-                {
-                    "id": Math.random().toString(),
-                    "name": "문의 어디서해요",
-                    "answer": "치이카와 인어 섬 가셔서 섬 주민에게 도움 받으시면 됩니다."
-                },
-                {
-                    "id": Math.random().toString(),
-                    "name": "문의 어디서해요",
-                    "answer": "치이카와 인어 섬 가셔서 섬 주민에게 도움 받으시면 됩니다."
-                },
-                {
-                    "id": Math.random().toString(),
-                    "name": "문의 어디서해요",
-                    "answer": "치이카와 인어 섬 가셔서 섬 주민에게 도움 받으시면 됩니다."
-                }
-            ]
+    {
+        "id": "1",
+        "name": "문의는 어디서 하나요?",
+        "answer": "마이 > 문의하러가기 > 문의 페이지에서 문의를 작성할 수 있어요. 답변은 답변된 문의에서 확인해주세요."
+    },
+    {
+        "id": "2",
+        "name": "산책 기록은 어디에서 확인하나요?",
+        "answer": "홈에서 날짜를 선택하거나 목록 아이콘을 눌러 산책 기록을 확인할 수 있어요."
+    },
+    {
+        "id": "3",
+        "name": "반려견 정보는 어떻게 수정하나요?",
+        "answer": "마이 > 반려동물 정보에서 반려견을 선택해 정보를 수정하고 완료를 눌러주세요."
+    },
+    {
+        "id": "4",
+        "name": "실종모드는 어떻게 사용하나요?",
+        "answer": "긴급 탭에서 실종모드를 켜고 실종 날짜, 시각, 위치를 입력해주세요. 체크리스트와 제보를 함께 확인할 수 있어요."
+    },
+    {
+        "id": "5",
+        "name": "실종된 반려견을 발견했어요.",
+        "answer": "긴급 탭의 실종동물 목록에서 제보하기를 눌러 목격 시각, 장소와 사진을 등록해주세요."
+    },
+    {
+        "id": "6",
+        "name": "산책 경로가 기록되지 않아요.",
+        "answer": "기기 설정에서 개산책의 위치 접근을 허용해주세요. 위치 신호가 약하면 기록이 늦어질 수 있어요."
+    },
+    {
+        "id": "7",
+        "name": "회원 탈퇴는 어디에서 하나요?",
+        "answer": "마이 화면 아래의 계정 탈퇴를 눌러 진행할 수 있어요."
+    }
+]
         };
     },
     async deleteMyAccount(): Promise<RESTResponse<null, APIError>> {

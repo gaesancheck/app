@@ -3,6 +3,7 @@ import * as Crypto from "expo-crypto";
 import { Directory, File, Paths } from "expo-file-system";
 import { APIMy, type APIMyInfo } from "./rest/my";
 import session from "./session";
+import { accountStorageKey } from "./accountStorage";
 
 export type Pet = APIMyInfo["petInfo"] & { "id": string; "specials": string };
 export type Attachment = { "name": string; "url": string };
@@ -12,11 +13,13 @@ export type Inquiry = {
 };
 export type MissingPet = Pet & {
     "missingSince": number; "lastPosition": string; "lastTime": string; "ownerName": string;
+    "ownerId"?: string;
 };
 export type Report = {
     "id": string; "petId": string; "petName": string; "time": string; "position": string;
     "content": string; "pictures": string[]; "createdAt": number;
-    "messages": { "id": string; "content": string; "createdAt": number }[];
+    "senderId"?: string; "senderName"?: string; "ownerId"?: string;
+    "messages": { "id": string; "content": string; "createdAt": number; "senderId"?: string; "senderName"?: string }[];
 };
 export type CareData = {
     "account": APIMyInfo["account"];
@@ -27,10 +30,14 @@ const STORAGE_KEY = "careData.v1";
 let queue: Promise<unknown> = Promise.resolve();
 
 async function storageKey(): Promise<string> {
+    const key = await accountStorageKey(STORAGE_KEY);
     const current = await session.get();
-    if (!current) return `${STORAGE_KEY}.guest`;
-    const identity = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, current.jwt);
-    return `${STORAGE_KEY}.${identity}`;
+    if (current && await AsyncStorage.getItem(key) === null) {
+        const previous = `${STORAGE_KEY}.${await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, current.jwt)}`;
+        const stored = await AsyncStorage.getItem(previous);
+        if (stored) { await AsyncStorage.setItem(key, stored); if (previous !== key) await AsyncStorage.removeItem(previous); }
+    }
+    return key;
 }
 
 async function read(key: string): Promise<CareData> {
@@ -59,6 +66,8 @@ export const careData = {
         const operation = queue.then(async () => {
             const attachments = new Directory(Paths.document, "care-attachments");
             if (attachments.exists) attachments.delete();
+            const communityAttachments = new Directory(Paths.document, "community-attachments");
+            if (communityAttachments.exists) communityAttachments.delete();
             await AsyncStorage.clear();
             await session.clear();
         });

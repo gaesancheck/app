@@ -38,11 +38,8 @@ export default function Page() {
     }}>{done ? "새 문의글 작성하기" : busy ? "저장 중…" : "문의하기"}</CareButton>}>
         {done ? <View style={{ "flex": 1, "justifyContent": "center", "alignItems": "center", "gap": 30 }}>
             <Success /><CareText style={{ "fontSize": 24 }}>문의글 작성이 완료되었어요!</CareText>
-            <CareText style={{ "fontSize": 14, "color": "#9A9A9A", "textAlign": "center", "lineHeight": 21 }}>문의는 이 기기에만 저장됐어요.
-실제 문의 접수는 아직 지원하지 않아요.</CareText>
             <CareButton small outline onPress={() => router.replace("/(tabs)/mypage/inquiries")}>내 문의글 확인하러가기  ›</CareButton>
         </View> : <>
-            <CareText style={{ "fontSize": 13, "color": "#9A9A9A", "marginBottom": 14 }}>현재 문의글은 이 기기에만 저장돼요.</CareText>
             <View style={{ "gap": 8, "marginBottom": 18 }}><CareText style={{ "fontSize": 18, "color": "#6E6E6E" }}>문의 유형</CareText>
                 <SelectionDropdown value={contactType} options={["질문", "오류 신고", "건의"].map(label => ({ "label": label, "value": label }))} onChange={value => setContactType(String(value))} containerStyle={{ "backgroundColor": "#FFF", "padding": 18, "borderRadius": 8, "borderWidth": 1, "borderColor": "#E5E7EB" }}><CareText>{contactType}  ⌄</CareText></SelectionDropdown>
             </View>

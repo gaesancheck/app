@@ -1,6 +1,6 @@
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { FlatList, Image, Platform, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Colors, LightColors, DarkColors } from "../../../../app.config";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import useChooseByScheme from "@/modules/useChooseByScheme";
@@ -12,7 +12,8 @@ import SvgBookmarkFilled from '@/assets/svg/bookmark_filled.svg';
 import SvgHeart from '@/assets/svg/heart.svg';
 import SvgComment from '@/assets/svg/comment.svg';
 import SvgPlus from '@/assets/svg/plus.svg';
-import { APIPost, APIPostCategory } from "@/modules/rest/posts";
+import { communityData, CommunityPost } from "@/modules/communityData";
+import { PostCard, Empty, message } from "@/components/CommunityUI";
 
 function Category({
     enabled,
@@ -44,18 +45,22 @@ export default function Page() {
     const colors = useChooseByScheme(LightColors, DarkColors);
     const styles = getStyles(colors, safeArea);
 
-    const [posts, setPosts] = useState<APIPost[]>([]);
+    const [posts, setPosts] = useState<CommunityPost[]>([]);
     // missing 카테고리는 APIEmergency에서 처리
-    const [currentCategory, setCurrentCategory] = useState<APIPostCategory | "missing">("popular");
+    const [currentCategory, setCurrentCategory] = useState<"popular" | "recent" | "others" | "missing">("popular");
 
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const load = useCallback(async () => { setLoading(true); try { setPosts(await communityData.listPosts({ "category": currentCategory })); setError(""); } catch (e) { setError("게시물을 불러오지 못했어요. 아래로 당겨 다시 시도해주세요."); } finally { setLoading(false); } }, [currentCategory]);
+    useFocusEffect(useCallback(() => { void load(); }, [load]));
     return <View style={styles.container}>
         <View style={styles.header}>
             <Text style={styles.headerText}>커뮤니티</Text>
             <View style={styles.headerItems}>
-                <TouchableOpacity hitSlop={7}>
+                <TouchableOpacity accessibilityLabel="게시물 검색" hitSlop={7} onPress={() => router.push("/community/search")}>
                     <SvgSearch width={15} height={15} />
                 </TouchableOpacity>
-                <TouchableOpacity hitSlop={7}>
+                <TouchableOpacity accessibilityLabel="내 게시물" hitSlop={7} onPress={() => router.push({ "pathname": "/community/my", "params": { "collection": "bookmarked" } })}>
                     <SvgBookmark width={15} height={15} />
                 </TouchableOpacity>
             </View>
@@ -71,38 +76,10 @@ export default function Page() {
             data={posts}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.posts}
-            renderItem={({ item }) => <View style={styles.post}>
-                <View style={styles.postContent}>
-                    {item.attachments.length > 0 && <View style={styles.attachments}>
-                        {item.attachments.map(v => <Image
-                            width={85}
-                            height={85}
-                            key={v.id}
-                            source={{ "uri": v.url }}
-                            style={{ "borderRadius": 12 }}
-                        />)}
-                    </View>}
-                    <Text style={styles.postTitle}>{item.title}</Text>
-                    <Text style={styles.postDescription}>{item.content}</Text>
-                </View>
-                <View style={styles.postBottom}>
-                    <View style={styles.postStatus}>
-                        <SvgHeart style={styles.postStatusIcon} />
-                        <Text style={styles.postStatusText}>{item.hearts}</Text>
-                    </View>
-                    <View style={styles.postStatus}>
-                        <SvgComment style={styles.postStatusIcon} />
-                        <Text style={styles.postStatusText}>{item.comments}</Text>
-                    </View>
-                    <TouchableOpacity style={styles.bookmark} hitSlop={7} onPress={() => {
-                        haptics.light();
-
-                        // bookmark
-                    }}>
-                        {item.bookmarked ? <SvgBookmarkFilled /> : <SvgBookmark color="#9CA3AF" />}
-                    </TouchableOpacity>
-                </View>
-            </View>}
+            refreshing={loading}
+            onRefresh={load}
+            ListEmptyComponent={<Empty text={error || (loading ? "게시물을 불러오고 있어요." : currentCategory === "missing" ? "실종된 반려동물이 없어요." : "아직 게시물이 없어요. 첫 이야기를 남겨주세요!")}/>}
+            renderItem={({ item }) => <PostCard post={item} onChange={load}/>}
         />
         <Pressable style={styles.writePost} onPress={() => {
             router.push("/community/write");

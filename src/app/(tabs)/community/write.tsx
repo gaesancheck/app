@@ -1,10 +1,12 @@
-import { Alert, Dimensions, Image, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Dimensions, Image, KeyboardAvoidingView, ScrollView, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LightColors, DarkColors, Colors } from "../../../../app.config";
 import { useState } from "react";
 import { router } from "expo-router";
 import * as ImagePicker from 'expo-image-picker';
 import useChooseByScheme from "@/modules/useChooseByScheme";
+import { communityData } from "@/modules/communityData";
+import { message } from "@/components/CommunityUI";
 import { haptics } from "@/modules/haptics";
 
 import SvgBack from '@/assets/svg/back.svg';
@@ -21,10 +23,15 @@ export default function Page() {
     const [isUploading, setIsUploading] = useState(false);
 
     const uploadPost = async () => {
+        if (isUploading) return;
+        if (!title.trim() || !content.trim()) { Alert.alert("게시물 작성", "제목과 내용을 입력해주세요."); return; }
         setIsUploading(true);
+        try { const post = await communityData.writePost({ "title": title, "content": content, "attachments": pictures.map(p => ({ "url": p.uri })) }); router.replace({ "pathname": "/community/success", "params": { "id": post.id } } as any); } catch (e) { message(e); } finally { setIsUploading(false); }
     };
 
     const selectPhotos = async () => {
+        if (pictures.length >= 10) { Alert.alert("사진 첨부", "사진은 최대 10장까지 첨부할 수 있어요."); return; }
+        try {
         const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!perm.granted) {
             // 임시
@@ -33,14 +40,17 @@ export default function Page() {
         }
 
         const images = await ImagePicker.launchImageLibraryAsync({
-            "allowsMultipleSelection": true
+            "allowsMultipleSelection": true,
+            "mediaTypes": ["images"],
+            "selectionLimit": Math.max(1, 10 - pictures.length)
         });
         if (!images.assets) return;
 
-        setPictures(v => [...v, ...images.assets]);
+        setPictures(v => [...v, ...images.assets.filter(a => !v.some(b => b.uri === a.uri))].slice(0, 10));
+        } catch (e) { message(e); }
     };
 
-    return <View style={styles.container}>
+    return <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <View style={styles.header}>
             <TouchableOpacity style={styles.headerBack} hitSlop={7} onPress={() => {
                 haptics.light();
@@ -50,13 +60,14 @@ export default function Page() {
             </TouchableOpacity>
             <Text style={styles.headerText}>게시물 작성</Text>
         </View>
-        <View style={styles.form}>
+        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.form}>
             <View style={styles.section}>
                 <Text style={styles.sectionText}>제목</Text>
                 <View>
                     <TextInput
                         style={styles.sectionTextInput}
                         accessibilityLabel="제목"
+                        maxLength={100}
                         value={title}
                         onChangeText={(v) => setTitle(v)}
                     />
@@ -73,6 +84,7 @@ export default function Page() {
                     <TextInput
                         style={[styles.sectionTextInput, styles.contentInput]}
                         accessibilityLabel="내용"
+                        maxLength={10000}
                         multiline
                         value={content}
                         onChangeText={(v) => setContent(v)}
@@ -87,9 +99,9 @@ export default function Page() {
             <View style={styles.section}>
                 <Text style={styles.sectionText}>사진 첨부</Text>
                 {pictures.length > 0 ? <View style={styles.pictures}>
-                    {pictures.map(v => <Pressable key={v.assetId} onPress={() => {
+                    {pictures.map(v => <Pressable key={v.uri} onPress={() => {
                         haptics.light();
-                        setPictures(a => a.filter(b => b.assetId !== v.assetId));
+                        setPictures(a => a.filter(b => b.uri !== v.uri));
                     }}>
                         <Image
                             style={styles.picture}
@@ -106,11 +118,11 @@ export default function Page() {
                     <Text style={styles.noPictureText}>사진을 선택해 주세요</Text>
                 </Pressable>}
             </View>
-        </View>
-        <Pressable style={[styles.upload, { "opacity": isUploading ? 0.5 : 1 }]} onPress={uploadPost}>
-            <Text style={styles.uploadText}>게시물 올리기</Text>
+        </ScrollView>
+        <Pressable disabled={isUploading} style={[styles.upload, { "opacity": isUploading ? 0.5 : 1 }]} onPress={uploadPost}>
+            <Text style={styles.uploadText}>{isUploading ? "게시물을 올리고 있어요" : "게시물 올리기"}</Text>
         </Pressable>
-    </View>;
+    </KeyboardAvoidingView>;
 }
 
 const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
@@ -142,7 +154,7 @@ const getStyles = (colors: Colors, safeArea: EdgeInsets) => StyleSheet.create({
         "marginTop": 41,
         "marginHorizontal": 19,
         "width": Dimensions.get("window").width - 38,
-        "height": "100%",
+        "paddingBottom": 150,
         "flexDirection": "column",
         "gap": 18
     },
