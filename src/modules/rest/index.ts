@@ -35,6 +35,11 @@ export async function REST<S = any, F = any, D = any>(route: string, config?: Ax
         ...config,
         baseURL: baseUrl.replace(/\/+$/, ""),
         "validateStatus": () => true
+    }).catch((error: unknown) => {
+        if (axios.isAxiosError(error) && !error.response) {
+            throw new Error("로그인 서버에 연결할 수 없습니다. 네트워크와 인증 서버 실행 상태를 확인해주세요.");
+        }
+        throw error;
     });
 
     if (Math.floor(r.status / 100) !== 2) {

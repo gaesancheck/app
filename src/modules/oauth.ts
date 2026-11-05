@@ -99,7 +99,8 @@ export async function signInWithOAuth(
         if (
             !data || typeof data.access_token !== "string" || !data.access_token.trim() ||
             typeof data.expires_in !== "number" || !Number.isFinite(data.expires_in) ||
-            (data.expires_in <= 0 && data.expires_in !== -1)
+            (data.expires_in <= 0 && data.expires_in !== -1) ||
+            (data.needs_onboarding !== undefined && typeof data.needs_onboarding !== "boolean")
         ) {
             throw new Error("로그인 서버의 응답 형식이 올바르지 않습니다.");
         }
@@ -107,6 +108,7 @@ export async function signInWithOAuth(
         const [previousSession, savedUser] = await Promise.all([session.get(), userData.get()]);
         await session.set({
             jwt: data.access_token,
+            ...(data.needs_onboarding === undefined ? {} : { "needsOnboarding": data.needs_onboarding }),
             ...(data.expires_in === -1 ? {} : { expiresAt: Date.now() + data.expires_in * 1000 }),
         });
         try {

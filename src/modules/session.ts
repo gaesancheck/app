@@ -3,6 +3,7 @@ import * as SecureStore from "expo-secure-store";
 export type SessionData = {
     jwt: string;
     expiresAt?: number;
+    needsOnboarding?: boolean;
 };
 
 const STORAGE_KEY = "session";
@@ -15,7 +16,8 @@ function isSessionData(value: unknown): value is SessionData {
         typeof value.jwt === "string" &&
         value.jwt.trim().length > 0 &&
         (!("expiresAt" in value) ||
-            (typeof value.expiresAt === "number" && Number.isFinite(value.expiresAt)))
+            (typeof value.expiresAt === "number" && Number.isFinite(value.expiresAt))) &&
+        (!("needsOnboarding" in value) || typeof value.needsOnboarding === "boolean")
     );
 }
 

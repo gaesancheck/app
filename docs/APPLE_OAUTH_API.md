@@ -98,11 +98,38 @@ Content-Type: `application/json`
 ```json
 {
   "access_token": "개산책 백엔드에서 발급한 JWT",
-  "expires_in": 604800
+  "expires_in": 604800,
+  "needs_onboarding": true
 }
 ```
 
-`expires_in`은 양의 정수 초다. 기존 앱 계약상 로그인 유지를 위해 무기한 세션을 지원한다면 `-1`을 반환할 수 있다. Apple token은 앱 세션 JWT가 아니므로 대신 반환하지 않는다. 프런트엔드는 이 응답을 SecureStore에 저장하고 홈으로 이동한다.
+`expires_in`은 양의 정수 초다. 기존 앱 계약상 로그인 유지를 위해 무기한 세션을 지원한다면 `-1`을 반환할 수 있다. Apple token은 앱 세션 JWT가 아니므로 대신 반환하지 않는다. 프런트엔드는 이 응답을 SecureStore에 저장한다. `needs_onboarding`이 `true`이면 온보딩으로, `false`이면 홈으로 이동한다. 이 값은 계정 생성 여부가 아니라 현재 온보딩 미완료 여부이며, 중단 후 재로그인한 사용자도 완료 전에는 `true`다. 다른 간편 로그인에도 같은 응답 필드를 사용한다.
+
+현재 온보딩은 `src/modules/rest/onboarding.ts`의 로컬 mock이다. 로그인 응답에 `needs_onboarding`이 없으면 사용자별 로컬 완료 상태로 분기한다. JWT는 `iss`와 `sub`로, opaque token은 토큰 해시로 로컬 상태를 구분한다. 토큰 자체는 AsyncStorage에 저장하지 않는다. DevMenu의 모든 데이터 삭제는 이 상태도 초기화한다.
+
+실제 API 연결 시 다음 계약으로 mock 구현을 교체한다. 아래 엔드포인트는 아직 서버에 구현되어 있지 않다.
+
+- `GET /v1/me/onboarding`: 앱 JWT 인증 후 `{ "needs_onboarding": true }` 또는 완료 상태를 반환한다.
+- `PUT /v1/me/onboarding`: 앱 JWT 인증 후 나이 구간·산책량·산책 컨디션·지역·반려견 정보를 저장한다. 요청 타입은 `CompleteOnboardingRequest`이며 예시는 아래와 같다. 완료 응답은 `{ "needs_onboarding": false, "answers": <저장된 요청>, "completed_at": 1793836800000 }`이다. `completed_at`은 밀리초 Unix timestamp다.
+- 인증 실패는 401, 입력 검증 실패는 400과 `{ "status": 400, "message": "오류 안내" }`를 반환한다. 생일은 `YYYYMMDD`로 정규화하고 실제 날짜이며 미래가 아닌지 검증한다. 반려견 정보는 마이 화면에서도 사용한다.
+
+```json
+{
+  "age_group": "0-3살",
+  "walk_duration": "30분 미만",
+  "walk_condition": "좋아요",
+  "region": "강서구",
+  "pet": {
+    "name": "초코",
+    "type": "푸들",
+    "gender": "female",
+    "age": 2,
+    "birth": "2024.03.01",
+    "neutering": true,
+    "diseases": "없음"
+  }
+}
+```
 
 | 상태 | 상황 |
 | --- | --- |
