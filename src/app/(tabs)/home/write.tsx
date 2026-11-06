@@ -138,8 +138,8 @@ export default function Page() {
             setOriginal(JSON.stringify(saved));
             haptics.light();
             router.back();
-        } catch {
-            Alert.alert("저장하지 못했어요", "잠시 후 다시 시도해주세요.");
+        } catch (error) {
+            Alert.alert("저장하지 못했어요", error instanceof Error ? error.message : "잠시 후 다시 시도해주세요.");
             setSaving(false);
         }
     };

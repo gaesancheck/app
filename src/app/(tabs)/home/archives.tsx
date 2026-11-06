@@ -1,3 +1,5 @@
+import { showCareError } from "@/components/CareUI";
+import { useRef } from "react";
 import { Platform, StyleSheet, TouchableOpacity, View, Text, ScrollView } from "react-native";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors, DarkColors, LightColors } from "@/../app.config";
@@ -15,6 +17,7 @@ import SmallDiary from "@/components/SmallDiary";
 import Dropdown from "@/components/Dropdown";
 
 export default function Page() {
+    const deleting = useRef(false);
     const safeArea = useSafeAreaInsets();
     const colors = useChooseByScheme(LightColors, DarkColors);
     const styles = getStyles(colors, safeArea);
@@ -96,8 +99,16 @@ export default function Page() {
                         <SmallDiary
                             showDeleteButton={isDeletingMode}
                             onPressDelete={async () => {
-                                await userData.deleteRecord(v.id);
-                                setData(await userData.get());
+                                if (deleting.current) return;
+                                deleting.current = true;
+                                try {
+                                    await userData.deleteRecord(v.id);
+                                    setData(await userData.get());
+                                } catch (error) {
+                                    showCareError(error);
+                                } finally {
+                                    deleting.current = false;
+                                }
                             }}
                             key={v.id}
                             data={v}

@@ -46,7 +46,7 @@ export async function REST<S = any, F = any, D = any>(
     const authenticated = !route.startsWith("/v1/auth/");
     const current = authenticated ? await session.get() : null;
     const data = config?.data && route !== "/v1/uploads" && authenticated
-        ? await uploadPayload(config.data) : config?.data;
+        ? await uploadPayload(config.data, REST) : config?.data;
     const r = await axios(route, {
         "timeout": 45000,
         ...config,
@@ -61,7 +61,7 @@ export async function REST<S = any, F = any, D = any>(
         throw error;
     });
 
-    if (r.status === 401 && authenticated) {
+    if (r.status === 401 && authenticated && (await session.get())?.jwt === current?.jwt) {
         await session.clear();
         router.replace("/login");
     }

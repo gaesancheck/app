@@ -110,23 +110,39 @@ export const formatDistance = (meters: number) => `${(meters / 1000).toFixed(1)}
 export const formatTime = (seconds: number) => `${Math.floor(seconds / 60)}분`;
 
 export type WalkCourse = ReturnType<typeof mockCourseFor> & { "source"?: "planner" | "static" };
-const selectedCourses = new Map<string, WalkCourse>();
-export async function courseFor(filters: WalkFilters = defaultFilters, alternative = 0): Promise<WalkCourse> {
-    if (USE_MOCK) return mockCourseFor(filters, alternative);
-    const key = JSON.stringify([filters.duration, filters.course, filters.social, filters.intensity, filters.time, alternative]);
-    const cached = selectedCourses.get(key);
-    if (cached) return cached;
+const selectionKey = (filters: WalkFilters, alternative: number) => JSON.stringify([filters.duration, filters.course, filters.social, filters.intensity, filters.time, alternative]);
+let selection: { "key": string; "course": WalkCourse; "createdAt": number } | undefined;
+export function rememberCourse(filters: WalkFilters, alternative: number, course: WalkCourse) {
+    selection = { "key": selectionKey(filters, alternative), "course": course, "createdAt": Date.now() };
+}
+export async function courseFor(filters: WalkFilters = defaultFilters, alternative = 0, useSelected = false): Promise<WalkCourse> {
+    if (USE_MOCK) {
+        const mock = mockCourseFor(filters, alternative);
+        return { ...mock, "stops": mock.reversed ? [...mock.stops].reverse() : mock.stops };
+    }
+    // A short-lived handoff preserves the exact course selected before recording starts.
+    // General recommendations always read location again and request fresh server data.
+    if (useSelected && selection?.key === selectionKey(filters, alternative) && Date.now() - selection.createdAt < 120000)
+        return selection.course;
     let position: { "latitude": number; "longitude": number } | undefined;
-    const permission = await Location.getForegroundPermissionsAsync();
-    if (permission.granted) {
-        const current = await Location.getLastKnownPositionAsync({ "maxAge": 60000 }) ??
-            await Location.getCurrentPositionAsync({ "accuracy": Location.Accuracy.Balanced });
-        position = { "latitude": current.coords.latitude, "longitude": current.coords.longitude };
+    try {
+        const permission = await Location.getForegroundPermissionsAsync();
+        if (permission.granted) {
+            let timer: ReturnType<typeof setTimeout> | undefined;
+            try {
+                const current = await Location.getLastKnownPositionAsync({ "maxAge": 60000 }) ?? await Promise.race([
+                    Location.getCurrentPositionAsync({ "accuracy": Location.Accuracy.Balanced }),
+                    new Promise<null>(resolve => { timer = setTimeout(() => resolve(null), 8000); }),
+                ]);
+                if (current) position = { "latitude": current.coords.latitude, "longitude": current.coords.longitude };
+            } finally { clearTimeout(timer); }
+        }
+    } catch {
+        // Location is optional in the API contract. GPS failures still allow server preset recommendations.
     }
     const course = await api<WalkCourse>("/v1/walk-courses/recommendations", {
-        "method": "POST", "timeout": 45000, "data": { ...filters, "alternative": alternative, ...position },
+        "method": "POST", "timeout": 45000, "data": { ...Object.fromEntries(walkFilters.map(group => [group.key, filters[group.key]])), "alternative": alternative, ...position },
     });
-    selectedCourses.set(key, course);
     return course;
 }
-export function clearCourseCache() { selectedCourses.clear(); }
+export function clearCourseCache() { selection = undefined; }

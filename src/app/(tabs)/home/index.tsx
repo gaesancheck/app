@@ -1,3 +1,5 @@
+import { showCareError } from "@/components/CareUI";
+import { useRef } from "react";
 import { useCallback, useState } from "react";
 import { Platform, View, StyleSheet, TouchableOpacity, ScrollView, Text, Pressable } from "react-native";
 import { EdgeInsets, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,6 +26,7 @@ const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const DOGS = { "5": SvgVeryGood, "4": SvgGood, "3": SvgNormal, "2": SvgSad, "1": SvgAngry };
 
 export default function Page() {
+    const deleting = useRef(false);
     const safeArea = useSafeAreaInsets();
     const colors = useChooseByScheme(LightColors, DarkColors);
     const styles = getStyles(colors, safeArea);
@@ -200,9 +203,17 @@ export default function Page() {
                                 }
                                 styles={{ "marginHorizontal": 0 }}
                                 onPressDelete={async () => {
-                                    await userData.deleteRecord(diary.id);
-                                    setData(await userData.get());
-                                    setDiary(undefined);
+                                    if (deleting.current) return;
+                                    deleting.current = true;
+                                    try {
+                                        await userData.deleteRecord(diary.id);
+                                        setData(await userData.get());
+                                        setDiary(undefined);
+                                    } catch (error) {
+                                        showCareError(error);
+                                    } finally {
+                                        deleting.current = false;
+                                    }
                                 }}
                             />
                         </View>

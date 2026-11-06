@@ -24,7 +24,7 @@ export default function Page() {
     const [status, setStatus] = useState("현재 위치를 확인하고 있어요.");
     const [saving, setSaving] = useState(false);
     const [alternative, setAlternative] = useState(Number(params.alternative) || 0);
-    const { course: preview, error: courseError, retry: retryCourse } = useWalkCourse(filters, alternative, recommended);
+    const { course: preview, error: courseError, retry: retryCourse } = useWalkCourse(filters, alternative, recommended, true);
     const watch = useRef<Location.LocationSubscription | null>(null);
     const live = useRef(true);
     const mounted = useRef(true);
@@ -211,7 +211,7 @@ export default function Page() {
                 {recommended && preview && (
                     <>
                         <CareText style={{ "marginTop": 12 }}>경로 추천</CareText>
-                        <CourseStops stops={preview.reversed ? [...preview.stops].reverse() : preview.stops} />
+                        <CourseStops stops={preview.stops} />
                         <CareButton small onPress={() => setAlternative(value => value + 1)}>
                             새 경로 추천
                         </CareButton>

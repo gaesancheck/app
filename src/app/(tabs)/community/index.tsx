@@ -70,7 +70,7 @@ export default function Page() {
             setPosts(await communityData.listPosts({ "category": currentCategory }));
             setError("");
         } catch (e) {
-            setError("게시물을 불러오지 못했어요. 아래로 당겨 다시 시도해주세요.");
+            setError(e instanceof Error ? e.message : "게시물을 불러오지 못했어요. 아래로 당겨 다시 시도해주세요.");
         } finally {
             setLoading(false);
         }

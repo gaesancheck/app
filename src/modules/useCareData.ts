@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
+import { showCareError } from "../components/CareUI";
 import { careData, type CareData } from "./careData";
 
 export default function useCareData() {
@@ -15,8 +16,11 @@ export default function useCareData() {
                 .then(value => {
                     if (active) setData(value);
                 })
-                .catch(() => {
-                    if (active) setFailed(true);
+                .catch(error => {
+                    if (active) {
+                        setFailed(true);
+                        showCareError(error);
+                    }
                 });
             return () => {
                 active = false;
