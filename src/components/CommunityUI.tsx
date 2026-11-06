@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import { communityData, CommunityPost } from "@/modules/communityData";
@@ -24,18 +25,23 @@ export function Empty({ text }: { "text": string }) {
     return <Text style={styles.empty}>{text}</Text>;
 }
 export function PostStats({ post, onChange }: { "post": CommunityPost; "onChange": () => void }) {
+    const pending = useRef(false);
+    const [busy, setBusy] = useState(false);
     const act = async (kind: "like" | "bookmark") => {
+        if (pending.current) return;
+        pending.current = true; setBusy(true);
         try {
-            if (kind === "like") await communityData.toggleLike(post.id);
-            else await communityData.toggleBookmark(post.id);
+            if (kind === "like") await communityData.toggleLike(post.id, !post.liked);
+            else await communityData.toggleBookmark(post.id, !post.bookmarked);
             onChange();
         } catch (e) {
             message(e);
-        }
+        } finally { pending.current = false; setBusy(false); }
     };
     return (
         <View style={styles.stats}>
             <Pressable
+                disabled={busy}
                 accessibilityLabel={post.liked ? "좋아요 취소" : "좋아요"}
                 hitSlop={8}
                 style={styles.stat}
@@ -46,9 +52,10 @@ export function PostStats({ post, onChange }: { "post": CommunityPost; "onChange
             </Pressable>
             <View style={styles.stat}>
                 <SvgComment width={16} height={16} />
-                <Text style={styles.small}>{post.comments.length}</Text>
+                <Text style={styles.small}>{post.commentCount ?? post.comments.length}</Text>
             </View>
             <Pressable
+                disabled={busy}
                 accessibilityLabel={post.bookmarked ? "북마크 취소" : "북마크"}
                 hitSlop={8}
                 style={styles.bookmark}

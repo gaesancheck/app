@@ -1,53 +1,16 @@
-import { RESTResponse } from ".";
-import { communityData, CommunityComment, CommunityPost, PostFilter } from "../communityData";
-export type APIPost = Omit<CommunityPost, "comments"> & { "comments": number };
+import { REST, USE_MOCK } from ".";
+import type { CommunityComment, CommunityPost, PostFilter, PostSummary } from "../communityData";
+import { mockPosts } from "./posts.mock";
+export type APIPost = PostSummary;
 export type APIPostDetails = CommunityPost;
 export type APIPostComment = CommunityComment;
 export type APIPostCategory = "popular" | "recent" | "missing" | "others";
-async function response<T>(action: () => Promise<T>): Promise<RESTResponse<T, APIError>> {
-    try {
-        return { "status": 200, "headers": {}, "success": true, "data": await action() };
-    } catch (e) {
-        return {
-            "status": 400,
-            "headers": {},
-            "success": false,
-            "data": { "message": e instanceof Error ? e.message : "게시물을 처리하지 못했어요." } as APIError,
-        };
-    }
-}
-export const APIPosts = {
-    "getPosts"(data: PostFilter = {}) {
-        return response(async () =>
-            (await communityData.listPosts(data)).map(p => ({ ...p, "comments": p.comments.length }))
-        );
-    },
-    "writeNewPost"(data: {
-        "title": string;
-        "content": string;
-        "wroteAt"?: number;
-        "attachments": { "id"?: string; "url": string }[];
-    }) {
-        return response(() => communityData.writePost(data));
-    },
-    "heartPost"(data: { "id": string; "bookmark"?: boolean; "heart"?: boolean }) {
-        return response(async () => {
-            if (data.bookmark !== undefined) await communityData.toggleBookmark(data.id, data.bookmark);
-            if (data.heart !== undefined) await communityData.toggleLike(data.id, data.heart);
-            return null;
-        });
-    },
-    "getPost"(id: string) {
-        return response(async () => {
-            const post = await communityData.getPost(id);
-            if (!post) throw new Error("게시물을 찾을 수 없어요.");
-            return post;
-        });
-    },
-    "addComment"(id: string, content: string) {
-        return response(() => communityData.addComment(id, content));
-    },
-    "deletePost"(id: string) {
-        return response(() => communityData.deletePost(id));
-    },
+const path = (id: string) => `/v1/posts/${encodeURIComponent(id)}`;
+export const APIPosts = USE_MOCK ? mockPosts : {
+    "getPosts": (data: PostFilter = {}) => REST<APIPost[]>("/v1/posts", { "params": data }),
+    "getPost": (id: string) => REST<APIPostDetails>(path(id)),
+    "writeNewPost": (data: { "title": string; "content": string; "wroteAt"?: number; "attachments": { "id"?: string; "url": string }[] }) => REST<APIPostDetails>("/v1/posts", { "method": "POST", "data": { "title": data.title, "content": data.content, "attachments": data.attachments } }),
+    "heartPost": ({ id, ...data }: { "id": string; "bookmark"?: boolean; "heart"?: boolean }) => REST<null>(`${path(id)}/reactions`, { "method": "PUT", "data": data }),
+    "addComment": (id: string, content: string) => REST<APIPostDetails>(`${path(id)}/comments`, { "method": "POST", "data": { "content": content } }),
+    "deletePost": (id: string) => REST<null>(path(id), { "method": "DELETE" }),
 };
