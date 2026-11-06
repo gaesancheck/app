@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 import * as DevTools from "expo-dev-client";
 import userData from "@/modules/userData";
+import session from "@/modules/session";
 import { careData } from "@/modules/careData";
 import * as Expo from "expo";
 import dayjs from "dayjs";
@@ -23,6 +24,12 @@ export default function RootLayout() {
                     {
                         "name": "Save example data",
                         "callback": async () => {
+                            const currentSession = await session.get();
+                            await session.set({
+                                ...currentSession,
+                                "jwt": currentSession?.jwt ?? "dev-example-data",
+                                "needsOnboarding": false,
+                            });
                             await userData.set({
                                 "loggedIn": true,
                                 "walkRecords": [

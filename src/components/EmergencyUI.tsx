@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
 import { useIsFocused } from "expo-router";
@@ -31,7 +31,7 @@ export function EmergencyNav({ active, enabled }: { "active": string; "enabled":
     return (
         <View style={styles.nav}>
             {options.map(item => (
-                <Pressable
+                <TouchableOpacity
                     key={item.key}
                     accessibilityRole="button"
                     accessibilityState={{ "selected": active === item.key }}
@@ -49,7 +49,7 @@ export function EmergencyNav({ active, enabled }: { "active": string; "enabled":
                     <CareText style={[styles.tabText, active === item.key && styles.activeTabText]}>
                         {item.label}
                     </CareText>
-                </Pressable>
+                </TouchableOpacity>
             ))}
         </View>
     );

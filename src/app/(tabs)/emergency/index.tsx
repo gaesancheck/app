@@ -43,10 +43,10 @@ export default function Page() {
                                 pet.id === data.emergency?.id
                                     ? undefined
                                     : () =>
-                                          router.push({
-                                              "pathname": "/(tabs)/emergency/report",
-                                              "params": { "petId": pet.id },
-                                          })
+                                        router.push({
+                                            "pathname": "/(tabs)/emergency/report",
+                                            "params": { "petId": pet.id },
+                                        })
                             }
                         />
                     ))}

@@ -16,7 +16,9 @@ export default function CommunityLayout() {
                 },
             }}
         >
-            <Stack.Screen name="index" options={{ "headerShown": false }} />
+            <Stack.Screen name="index" options={{ "headerShown": false, "animation": "none" }} />
+            <Stack.Screen name="reports" options={{ "animation": "none" }} />
+            <Stack.Screen name="start" options={{ "animation": "none" }} />
         </Stack>
     );
 }

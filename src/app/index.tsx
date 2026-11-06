@@ -3,9 +3,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors, DarkColors, LightColors } from "../../app.config";
 import { useEffect } from "react";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import useChooseByScheme from "@/modules/useChooseByScheme";
 
 import Footstep from "@/assets/svg/balzaguk.svg";
+
+const HAS_LAUNCHED_KEY = "hasLaunched";
 
 export default function Loading() {
     const safeArea = useSafeAreaInsets();
@@ -13,7 +16,27 @@ export default function Loading() {
     const styles = getStyles(colors);
 
     useEffect(() => {
-        router.replace("/login");
+        let active = true;
+
+        const redirect = async () => {
+            let hasLaunched = false;
+
+            try {
+                hasLaunched = (await AsyncStorage.getItem(HAS_LAUNCHED_KEY)) === "true";
+                if (!active) return;
+                if (!hasLaunched) await AsyncStorage.setItem(HAS_LAUNCHED_KEY, "true");
+            } catch (error) {
+                console.warn("앱 첫 실행 여부를 저장하거나 확인하지 못했습니다.", error);
+            }
+
+            if (active) router.replace(hasLaunched ? "/login" : "/firstLaunch");
+        };
+
+        void redirect();
+
+        return () => {
+            active = false;
+        };
     }, []);
 
     return (
