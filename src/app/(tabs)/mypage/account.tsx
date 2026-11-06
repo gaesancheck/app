@@ -34,10 +34,6 @@ export default function Page() {
         try {
             const response = await APIMy.changeInfo({ "name": id.trim(), "picture": picture });
             if (!response.success) throw new Error(response.data.message);
-            await careData.update(current => ({
-                ...current,
-                "account": { ...current.account, "name": id.trim(), "profile": picture },
-            }));
             router.back();
         } catch (error) {
             showCareError(error);

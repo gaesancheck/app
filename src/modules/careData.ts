@@ -1,11 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Crypto from "expo-crypto";
-import { Directory, File, Paths } from "expo-file-system";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Directory, Paths } from "expo-file-system";
 import { APIMy, type APIMyInfo } from "./rest/my";
+import { api, USE_MOCK } from "./rest";
 import session from "./session";
-import { accountStorageKey } from "./accountStorage";
-
-export type Pet = APIMyInfo["petInfo"] & { "id": string; "specials": string };
+import { mockCareData } from "./careData.mock";
+export type Pet = NonNullable<APIMyInfo["petInfo"]> & { "id": string; "specials": string };
 export type Attachment = { "name": string; "url": string };
 export type Inquiry = {
     "id": string;
@@ -45,105 +45,43 @@ export type CareData = {
     "checks": string[];
     "reports": Report[];
 };
-const STORAGE_KEY = "careData.v1";
-let queue: Promise<unknown> = Promise.resolve();
-
-async function storageKey(): Promise<string> {
-    const key = await accountStorageKey(STORAGE_KEY);
-    const current = await session.get();
-    if (current && (await AsyncStorage.getItem(key)) === null) {
-        const previous = `${STORAGE_KEY}.${await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, current.jwt)}`;
-        const stored = await AsyncStorage.getItem(previous);
-        if (stored) {
-            await AsyncStorage.setItem(key, stored);
-            if (previous !== key) await AsyncStorage.removeItem(previous);
-        }
-    }
-    return key;
+async function getRemote(): Promise<CareData> {
+    const [me, pets, inquiries, emergency, reports] = await Promise.all([
+        api<APIMyInfo>("/v1/me"), api<Pet[]>("/v1/me/pets"), api<Inquiry[]>("/v1/me/contacts"),
+        api<Pick<CareData, "emergency" | "checks">>("/v1/me/emergency"), api<Report[]>("/v1/reports"),
+    ]);
+    return { "account": me.account, "pets": pets, "inquiries": inquiries, ...emergency, "reports": reports };
 }
-
-async function read(key: string): Promise<CareData> {
-    const saved = await AsyncStorage.getItem(key);
-    if (saved) {
-        const parsed = JSON.parse(saved) as CareData;
-        if (
-            !parsed.account ||
-            !Array.isArray(parsed.pets) ||
-            !Array.isArray(parsed.inquiries) ||
-            !Array.isArray(parsed.checks) ||
-            !Array.isArray(parsed.reports)
-        ) {
-            throw new Error("저장된 정보를 불러오지 못했어요.");
-        }
-        return parsed;
-    }
-    const response = await APIMy.getMyInfo();
-    if (!response.success) throw new Error(response.data.message);
-    const initial: CareData = {
-        "account": response.data.account,
-        "pets": [{ ...response.data.petInfo, "id": Crypto.randomUUID(), "specials": "" }],
-        "inquiries": [],
-        "emergency": null,
-        "checks": [],
-        "reports": [],
-    };
-    await AsyncStorage.setItem(key, JSON.stringify(initial));
-    return initial;
+export function normalizeBirth(birth: string): string {
+    return /^\d{8}$/.test(birth) ? `${birth.slice(4, 6)}.${birth.slice(6, 8)}` : birth;
 }
-
-export const careData = {
-    "clearAll"(): Promise<void> {
-        const operation = queue.then(async () => {
-            const attachments = new Directory(Paths.document, "care-attachments");
-            if (attachments.exists) attachments.delete();
-            const communityAttachments = new Directory(Paths.document, "community-attachments");
-            if (communityAttachments.exists) communityAttachments.delete();
-            await AsyncStorage.clear();
-            await session.clear();
+export const careData = USE_MOCK ? mockCareData : {
+    "get": getRemote,
+    async "update"(change: (current: CareData) => CareData): Promise<CareData> {
+        // Legacy checklist screens still use the aggregate updater; domain writes use their own endpoints.
+        const current = await getRemote();
+        const next = change(current);
+        if (JSON.stringify(next.checks) !== JSON.stringify(current.checks))
+            await api("/v1/me/emergency/checks", { "method": "PUT", "data": { "checks": next.checks } });
+        return getRemote();
+    },
+    async "savePet"(pet: Pet, existing: boolean): Promise<Pet> {
+        const { id, ...data } = pet;
+        return api<Pet>(existing ? `/v1/me/pets/${encodeURIComponent(id)}` : "/v1/me/pets", {
+            "method": existing ? "PUT" : "POST", "data": { ...data, "birth": normalizeBirth(data.birth), "diseases": data.diseases.trim() || "없음" },
         });
-        queue = operation.catch(() => undefined);
-        return operation;
     },
-    async "get"(): Promise<CareData> {
-        const operation = queue.then(async () => read(await storageKey()));
-        queue = operation.catch(() => undefined);
-        return operation;
-    },
-    "update"(change: (current: CareData) => CareData): Promise<CareData> {
-        const operation = queue.then(async () => {
-            const key = await storageKey();
-            const next = change(await read(key));
-            await AsyncStorage.setItem(key, JSON.stringify(next));
-            return next;
-        });
-        queue = operation.catch(() => undefined);
-        return operation;
-    },
-    async "clear"(): Promise<void> {
-        await queue;
-        const key = await storageKey();
-        const saved = await AsyncStorage.getItem(key);
-        if (saved) {
-            const current = JSON.parse(saved) as CareData;
-            const localFiles = new Set([
-                current.account.profile,
-                ...current.pets.map(pet => pet.picture),
-                ...current.inquiries.flatMap(inquiry => inquiry.attachments.map(file => file.url)),
-                ...current.reports.flatMap(report => report.pictures),
-                current.emergency?.picture,
-            ]);
-            const directory = new Directory(Paths.document, "care-attachments").uri.replace(/\/$/, "") + "/";
-            for (const uri of localFiles) {
-                if (uri?.startsWith(directory)) {
-                    const file = new File(uri);
-                    if (file.exists) file.delete();
-                }
-            }
+    async "deletePet"(id: string): Promise<void> { await api(`/v1/me/pets/${encodeURIComponent(id)}`, { "method": "DELETE" }); },
+    async "clear"(): Promise<void> {},
+    async "clearAll"(): Promise<void> {
+        for (const name of ["care-attachments", "community-attachments"]) {
+            const directory = new Directory(Paths.document, name);
+            if (directory.exists) directory.delete();
         }
-        await AsyncStorage.removeItem(key);
+        await AsyncStorage.clear();
+        await session.clear();
     },
 };
-
 export function newPet(): Pet {
     return {
         "id": Crypto.randomUUID(),

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Crypto from "expo-crypto";
-import type { RESTResponse } from ".";
+import { REST, USE_MOCK, type RESTResponse } from ".";
 import session from "../session";
 import { careData, newPet, type Pet } from "../careData";
 import { isValidMonthDay } from "../petBirthday";
@@ -93,7 +93,7 @@ export const APIOnboarding = {
         if (current) await AsyncStorage.removeItem(await storageKey(current.jwt));
     },
     async "getStatus"(): Promise<RESTResponse<APIOnboardingStatus, APIError>> {
-        // GET /v1/me/onboarding — Authorization: Bearer <app JWT>
+        if (!USE_MOCK) return REST<APIOnboardingStatus>("/v1/me/onboarding");
         const current = await session.get();
         if (!current) return unauthorized();
         const status = await getMockOnboardingStatus(current.jwt);
@@ -105,7 +105,12 @@ export const APIOnboarding = {
         };
     },
     async "complete"(data: CompleteOnboardingRequest): Promise<RESTResponse<APIOnboardingStatus, APIError>> {
-        // PUT /v1/me/onboarding — JSON: CompleteOnboardingRequest
+        if (!USE_MOCK) {
+            const result = await REST<APIOnboardingStatus>("/v1/me/onboarding", { "method": "PUT", "data": data });
+            const current = await session.get();
+            if (result.success && current) await session.set({ ...current, "needsOnboarding": result.data.needs_onboarding });
+            return result;
+        }
         const current = await session.get();
         if (!current) return unauthorized();
         const invalid = (message: string): RESTResponse<never, APIError> => ({

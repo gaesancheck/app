@@ -55,12 +55,7 @@ export default function Page() {
         setBusy(true);
         try {
             const next = { ...pet, "name": pet.name.trim(), "age": Number(age), "birth": birth };
-            const response = await APIMy.changePetInfo(next);
-            if (!response.success) throw new Error(response.data.message);
-            await careData.update(current => ({
-                ...current,
-                "pets": id ? current.pets.map(item => (item.id === id ? next : item)) : [...current.pets, next],
-            }));
+            await careData.savePet(next, Boolean(id));
             router.back();
         } catch (error) {
             showCareError(error);
@@ -85,6 +80,11 @@ export default function Page() {
                 <LoadingState />
             ) : (
                 <>
+                    {id && <CareButton outline disabled={busy} onPress={() => {
+                        if (busy) return;
+                        setBusy(true);
+                        careData.deletePet(id).then(() => router.back()).catch(showCareError).finally(() => setBusy(false));
+                    }}>반려견 삭제</CareButton>}
                     <Pressable
                         accessibilityRole="button"
                         accessibilityLabel="반려견 사진 변경"

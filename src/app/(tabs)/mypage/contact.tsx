@@ -36,19 +36,13 @@ export default function Page() {
                 "content": content.trim(),
                 "attachments": attachments,
             };
-            // The current APIMy adapter is a mock. Keep the submitted inquiry locally for its list/detail screens.
             if (!submissionId.current) {
                 const result = await APIMy.sendContact(payload);
                 if (!result.success) throw new Error(result.data.message);
-                submissionId.current = Crypto.randomUUID();
+                submissionId.current = "submitted";
             }
-            const id = submissionId.current;
-            await careData.update(current => ({
-                ...current,
-                "inquiries": current.inquiries.some(item => item.id === id)
-                    ? current.inquiries
-                    : [{ ...payload, "id": id, "createdAt": Date.now() }, ...current.inquiries],
-            }));
+            // Creation is 204; refresh server inquiries instead of inventing an ID.
+            await careData.get();
             setDone(true);
         } catch (error) {
             showCareError(error);

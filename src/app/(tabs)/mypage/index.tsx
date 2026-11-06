@@ -28,14 +28,9 @@ export default function Page() {
             if (confirm === "delete") {
                 const response = await APIMy.deleteMyAccount();
                 if (!response.success) throw new Error(response.data.message);
-                await emergencyService.deleteAccountData();
-                await communityData.clear();
-                await APIOnboarding.clear();
-                await AsyncStorage.removeItem(await accountStorageKey("walkRecordSearchHistory"));
-                await careData.clear();
-                await userData.clear();
+                await careData.clearAll();
             } else {
-                await userData.set({ ...(await userData.get()), "loggedIn": false });
+                await userData.clear();
             }
             await session.clear();
             setConfirm(null);
