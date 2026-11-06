@@ -1,3 +1,5 @@
+import { api, USE_MOCK } from "./rest";
+import * as Location from "expo-location";
 import type { MapCoordinate } from "../../modules/kakao-map";
 
 export const walkFilters = [
@@ -63,7 +65,7 @@ const courses = [
         ],
     },
 ];
-export function courseFor(filters: WalkFilters = defaultFilters, alternative = 0) {
+function mockCourseFor(filters: WalkFilters = defaultFilters, alternative = 0) {
     const selected = Math.max(
         0,
         walkFilters[1].options.findIndex(value => value === filters.course)
@@ -106,3 +108,25 @@ export function metersBetween(a: MapCoordinate, b: MapCoordinate) {
 }
 export const formatDistance = (meters: number) => `${(meters / 1000).toFixed(1)}km`;
 export const formatTime = (seconds: number) => `${Math.floor(seconds / 60)}분`;
+
+export type WalkCourse = ReturnType<typeof mockCourseFor> & { "source"?: "planner" | "static" };
+const selectedCourses = new Map<string, WalkCourse>();
+export async function courseFor(filters: WalkFilters = defaultFilters, alternative = 0): Promise<WalkCourse> {
+    if (USE_MOCK) return mockCourseFor(filters, alternative);
+    const key = JSON.stringify([filters.duration, filters.course, filters.social, filters.intensity, filters.time, alternative]);
+    const cached = selectedCourses.get(key);
+    if (cached) return cached;
+    let position: { "latitude": number; "longitude": number } | undefined;
+    const permission = await Location.getForegroundPermissionsAsync();
+    if (permission.granted) {
+        const current = await Location.getLastKnownPositionAsync({ "maxAge": 60000 }) ??
+            await Location.getCurrentPositionAsync({ "accuracy": Location.Accuracy.Balanced });
+        position = { "latitude": current.coords.latitude, "longitude": current.coords.longitude };
+    }
+    const course = await api<WalkCourse>("/v1/walk-courses/recommendations", {
+        "method": "POST", "timeout": 45000, "data": { ...filters, "alternative": alternative, ...position },
+    });
+    selectedCourses.set(key, course);
+    return course;
+}
+export function clearCourseCache() { selectedCourses.clear(); }

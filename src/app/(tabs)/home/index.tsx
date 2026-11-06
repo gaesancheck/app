@@ -200,10 +200,7 @@ export default function Page() {
                                 }
                                 styles={{ "marginHorizontal": 0 }}
                                 onPressDelete={async () => {
-                                    await userData.update(
-                                        "walkRecords",
-                                        data.walkRecords.filter(v => v.id !== diary.id)
-                                    );
+                                    await userData.deleteRecord(diary.id);
                                     setData(await userData.get());
                                     setDiary(undefined);
                                 }}

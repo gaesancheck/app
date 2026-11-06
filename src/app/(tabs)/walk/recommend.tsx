@@ -1,3 +1,5 @@
+import useWalkCourse from "@/modules/useWalkCourse";
+import { LoadingState } from "@/components/CareUI";
 import { useState } from "react";
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -15,7 +17,8 @@ export default function Page() {
         ])
     ) as WalkFilters;
     const [alternative, setAlternative] = useState(0);
-    const course = courseFor(filters, alternative);
+    const { course, error, retry } = useWalkCourse(filters, alternative);
+    if (!course) return <CareScreen title="경로 추천 산책"><CareText>{error ?? "산책 경로를 찾고 있어요. 잠시 기다려주세요."}</CareText>{error ? <CareButton onPress={retry}>다시 시도</CareButton> : <LoadingState />}</CareScreen>;
     return (
         <CareScreen
             title="경로 추천 산책"

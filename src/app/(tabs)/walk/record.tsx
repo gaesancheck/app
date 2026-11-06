@@ -1,3 +1,5 @@
+import useWalkCourse from "@/modules/useWalkCourse";
+import { LoadingState } from "@/components/CareUI";
 import { useEffect, useRef, useState } from "react";
 import { Alert, AppState, Linking, View } from "react-native";
 import { router, useLocalSearchParams, usePreventRemove } from "expo-router";
@@ -15,7 +17,6 @@ export default function Page() {
     const params = useLocalSearchParams<Record<string, string>>();
     const recommended = params.recommended === "1";
     const filters = { ...defaultFilters, ...params } as WalkFilters;
-    const course = courseFor(filters, Number(params.alternative) || 0);
     const [points, setPoints] = useState<MapCoordinate[]>([]);
     const [seconds, setSeconds] = useState(0);
     const [distance, setDistance] = useState(0);
@@ -23,6 +24,7 @@ export default function Page() {
     const [status, setStatus] = useState("현재 위치를 확인하고 있어요.");
     const [saving, setSaving] = useState(false);
     const [alternative, setAlternative] = useState(Number(params.alternative) || 0);
+    const { course: preview, error: courseError, retry: retryCourse } = useWalkCourse(filters, alternative, recommended);
     const watch = useRef<Location.LocationSubscription | null>(null);
     const live = useRef(true);
     const mounted = useRef(true);
@@ -146,20 +148,19 @@ export default function Page() {
             "routes": pointsRef.current,
             "duration": Math.floor(elapsed.current),
             "distance": Math.round(distanceRef.current),
-            "destination": recommended ? course.name : "자유 산책",
+            "destination": recommended ? preview?.name ?? "추천 산책" : "자유 산책",
             "content": "",
         };
         try {
-            const current = await userData.get();
-            await userData.set({ ...current, "walkRecords": [...current.walkRecords, record] });
+            const saved = await userData.saveRecord(record);
             setRecording(false);
-            setTimeout(() => router.replace({ "pathname": "/(tabs)/home/write", "params": { "id": record.id } }), 0);
+            setTimeout(() => router.replace({ "pathname": "/(tabs)/home/write", "params": { "id": saved.id } }), 0);
         } catch (error) {
             showCareError(error);
             setSaving(false);
         }
     }
-    const preview = courseFor(filters, alternative);
+
     return (
         <CareScreen
             title={recommended ? "경로 추천 산책" : "자유 산책"}
@@ -169,10 +170,11 @@ export default function Page() {
                 </CareButton>
             }
         >
+            {recommended && !preview && (courseError ? <CareButton onPress={retryCourse}>{courseError} · 다시 시도</CareButton> : <LoadingState />)}
             {recommended && !points.length && (
                 <CareText style={{ "fontSize": 13, "marginBottom": 8 }}>추천 경로 미리보기</CareText>
             )}
-            <RouteMap points={points.length ? points : recommended ? preview.routes : []} height={280} />
+            <RouteMap points={points.length ? points : recommended ? preview?.routes ?? [] : []} height={280} />
             <WalkMetrics
                 seconds={seconds}
                 distance={distance}
@@ -206,7 +208,7 @@ export default function Page() {
                         위치 권한 설정
                     </CareButton>
                 )}
-                {recommended && (
+                {recommended && preview && (
                     <>
                         <CareText style={{ "marginTop": 12 }}>경로 추천</CareText>
                         <CourseStops stops={preview.reversed ? [...preview.stops].reverse() : preview.stops} />

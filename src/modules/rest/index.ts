@@ -50,7 +50,7 @@ export async function REST<S = any, F = any, D = any>(
     const r = await axios(route, {
         "timeout": 45000,
         ...config,
-        "data": data,
+        "data": data as D,
         "headers": { ...config?.headers, ...(current ? { "Authorization": `Bearer ${current.jwt}` } : {}) },
         "baseURL": baseUrl.replace(/\/+$/, ""),
         "validateStatus": () => true,

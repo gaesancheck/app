@@ -96,10 +96,7 @@ export default function Page() {
                         <SmallDiary
                             showDeleteButton={isDeletingMode}
                             onPressDelete={async () => {
-                                await userData.update(
-                                    "walkRecords",
-                                    data.walkRecords.filter(a => a.id !== v.id)
-                                );
+                                await userData.deleteRecord(v.id);
                                 setData(await userData.get());
                             }}
                             key={v.id}

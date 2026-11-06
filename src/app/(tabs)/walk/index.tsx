@@ -1,3 +1,5 @@
+import useWalkCourse from "@/modules/useWalkCourse";
+import { LoadingState } from "@/components/CareUI";
 import { View, Pressable, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { CareScreen, CareText, CareButton, CareRow, careColors } from "@/components/CareUI";
@@ -6,7 +8,8 @@ import { RouteMap } from "@/components/EmergencyUI";
 import { courseFor } from "@/modules/walkData";
 
 export default function Page() {
-    const course = courseFor();
+    const { course, error, retry } = useWalkCourse();
+    if (!course) return <CareScreen title="경로 추천 산책"><CareText>{error ?? "산책 경로를 찾고 있어요. 잠시 기다려주세요."}</CareText>{error ? <CareButton onPress={retry}>다시 시도</CareButton> : <LoadingState />}</CareScreen>;
     return (
         <CareScreen title="산책" back={false} headerGap={17}>
             <View style={styles.course}>

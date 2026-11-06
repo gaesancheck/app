@@ -19,7 +19,7 @@ export default function RootLayout() {
 
     useEffect(() => {
         (async () => {
-            __DEV__ &&
+            __DEV__ && process.env.EXPO_PUBLIC_USE_MOCK === "true" &&
                 DevTools.registerDevMenuItems([
                     {
                         "name": "Save example data",

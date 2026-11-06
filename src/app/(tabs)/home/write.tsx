@@ -133,15 +133,9 @@ export default function Page() {
         if (!record || saving) return;
         setSaving(true);
         try {
-            const data = await userData.get();
-            const exists = data.walkRecords.some(item => item.id === record.id);
-            await userData.update(
-                "walkRecords",
-                exists
-                    ? data.walkRecords.map(item => (item.id === record.id ? record : item))
-                    : [...data.walkRecords, record]
-            );
-            setOriginal(JSON.stringify(record));
+            const saved = await userData.saveRecord(record, Boolean(recordId));
+            setRecord(saved);
+            setOriginal(JSON.stringify(saved));
             haptics.light();
             router.back();
         } catch {
