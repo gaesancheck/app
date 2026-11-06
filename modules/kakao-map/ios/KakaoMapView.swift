@@ -116,8 +116,11 @@ final class KakaoMapView: ExpoView, MapControllerDelegate {
         guard !overlaysReady, let map = controller?.getView("walk") as? KakaoMap else { return }
         let routes = map.getRouteManager()
         _ = routes.addRouteLayer(layerID: "walk-route", zOrder: 0)
-        let style = RouteStyle(styles: [PerLevelRouteStyle(width: 12, color: .systemGreen,
-            strokeWidth: 2, strokeColor: .white, level: 0)])
+        // Figma's 15px route uses the same 1/6 scale as the 168px-wide badge.
+        let routeWidth = UInt((2.5 * traitCollection.displayScale).rounded())
+        let style = RouteStyle(styles: [PerLevelRouteStyle(width: routeWidth,
+            color: UIColor(red: 104/255, green: 143/255, blue: 110/255, alpha: 1),
+            strokeWidth: 0, strokeColor: .clear, level: 0)])
         let styles = RouteStyleSet(styleID: "walk-route-style")
         styles.addStyle(style)
         routes.addRouteStyleSet(styles)
@@ -125,7 +128,9 @@ final class KakaoMapView: ExpoView, MapControllerDelegate {
         let labels = map.getLabelManager()
         _ = labels.addLabelLayer(option: LabelLayerOptions(layerID: "walk-endpoints",
             competitionType: .none, competitionUnit: .poi, orderType: .rank, zOrder: 10000))
-        for (id, title, color) in [("start", "출발", UIColor.systemGreen), ("end", "도착", UIColor.systemRed)] {
+        for (id, title, color) in [("start", "출발", UIColor(red: 104/255, green: 143/255, blue: 110/255, alpha: 1)),
+            ("end", "도착", UIColor(red: 227/255, green: 97/255, blue: 99/255, alpha: 1)),
+            ("shared", "", UIColor(red: 104/255, green: 143/255, blue: 110/255, alpha: 1))] {
             let icon = PoiIconStyle(symbol: endpointImage(title: title, color: color),
                 anchorPoint: CGPoint(x: 0.5, y: 1))
             labels.addPoiStyle(PoiStyle(styleID: "walk-\(id)",
@@ -166,7 +171,9 @@ final class KakaoMapView: ExpoView, MapControllerDelegate {
             layer?.addRoute(option: option)?.show()
             routeID = id
         }
-        let endpoints = points.count > 1 ? [("start", first), ("end", points.last!)] : [("start", first)]
+        let sameEndpoint = routeCoordinates.first?["latitude"] == routeCoordinates.last?["latitude"]
+            && routeCoordinates.first?["longitude"] == routeCoordinates.last?["longitude"]
+        let endpoints = sameEndpoint ? [("shared", first)] : [("start", first), ("end", points.last!)]
         for (kind, point) in endpoints {
             let id = "\(kind)-\(overlayRevision)"
             let option = PoiOptions(styleID: "walk-\(kind)", poiID: id)
@@ -203,17 +210,35 @@ final class KakaoMapView: ExpoView, MapControllerDelegate {
             .flatMap { Bundle(url: $0) } ?? moduleBundle
         let pin = UIImage(named: "location", in: resourceBundle, compatibleWith: nil)?
             .withTintColor(color, renderingMode: .alwaysOriginal)
-        return UIGraphicsImageRenderer(size: CGSize(width: 48, height: 73)).image { _ in
-            // Keep the text above the original location.svg silhouette.
-            UIColor.white.setFill()
-            UIBezierPath(roundedRect: CGRect(x: 2, y: 0, width: 44, height: 24), cornerRadius: 12).fill()
+        // Keep the Figma proportions while rendering the badge at half its previous size.
+        let scale: CGFloat = 0.5
+        if title.isEmpty {
+            return UIGraphicsImageRenderer(size: CGSize(width: 36.9997 * scale, height: 51.8417 * scale)).image { _ in
+                pin?.draw(in: CGRect(x: 0, y: 0, width: 36.9997 * scale, height: 51.8417 * scale))
+            }
+        }
+        return UIGraphicsImageRenderer(size: CGSize(width: 56 * scale, height: 84.675 * scale)).image { context in
+            context.cgContext.scaleBy(x: scale, y: scale)
+            let outline = UIBezierPath(roundedRect: CGRect(x: 0.5, y: 0.5,
+                width: 55, height: 27.333), cornerRadius: 16.667)
+            color.setFill()
+            outline.fill()
+            color.setStroke()
+            outline.lineWidth = 1
+            outline.stroke()
             let paragraph = NSMutableParagraphStyle()
             paragraph.alignment = .center
-            (title as NSString).draw(in: CGRect(x: 2, y: 3, width: 44, height: 20), withAttributes: [
-                .font: UIFont.boldSystemFont(ofSize: 14), .foregroundColor: color,
-                .paragraphStyle: paragraph
-            ])
-            pin?.draw(in: CGRect(x: 8, y: 28, width: 32, height: 44.8))
+            let font = UIFont(name: "Ownglyph_PDH-Rg", size: 53/3)
+                ?? UIFont(name: "Ownglyph PDH", size: 53/3)
+                ?? UIFont.systemFont(ofSize: 53/3)
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: font, .foregroundColor: UIColor.white, .paragraphStyle: paragraph,
+                .kern: -0.08
+            ]
+            let textHeight = (title as NSString).size(withAttributes: attributes).height
+            (title as NSString).draw(in: CGRect(x: 0, y: (85/3 - textHeight)/2,
+                width: 56, height: textHeight), withAttributes: attributes)
+            pin?.draw(in: CGRect(x: 9.5, y: 32.833, width: 36.9997, height: 51.8417))
         }
     }
 }

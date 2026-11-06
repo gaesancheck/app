@@ -28,6 +28,9 @@ class KakaoMapModule : Module() {
             Events("onMapReady", "onMapError")
             Prop("appKey") { view: KakaoMapView, value: String -> view.appKey = value }
             Prop("active") { view: KakaoMapView, value: Boolean -> view.active = value }
+            Prop("routeCoordinates") { view: KakaoMapView, value: List<Map<String, Double>>? ->
+                view.routeCoordinates = value ?: emptyList()
+            }
             OnViewDidUpdateProps { view: KakaoMapView ->
                 views.add(view)
                 view.setForeground(foreground)

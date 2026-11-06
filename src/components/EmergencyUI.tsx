@@ -151,6 +151,7 @@ export function RouteMap({ points = [], height = 210 }: { "points"?: EmergencyMa
         </>
     );
 }
+
 const styles = StyleSheet.create({
     "mapControls": {
         "padding": 12,
