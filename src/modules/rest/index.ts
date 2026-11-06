@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosResponseHeaders, RawAxiosResponseHeaders } from "axios";
 
 import session from "../session";
+import { uploadPayload } from "../uploads";
 import { router } from "expo-router";
 
 export const USE_MOCK = process.env.EXPO_PUBLIC_USE_MOCK === "true";
@@ -44,9 +45,12 @@ export async function REST<S = any, F = any, D = any>(
 
     const authenticated = !route.startsWith("/v1/auth/");
     const current = authenticated ? await session.get() : null;
+    const data = config?.data && route !== "/v1/uploads" && authenticated
+        ? await uploadPayload(config.data) : config?.data;
     const r = await axios(route, {
         "timeout": 45000,
         ...config,
+        "data": data,
         "headers": { ...config?.headers, ...(current ? { "Authorization": `Bearer ${current.jwt}` } : {}) },
         "baseURL": baseUrl.replace(/\/+$/, ""),
         "validateStatus": () => true,
