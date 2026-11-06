@@ -98,7 +98,7 @@ export async function signInWithOAuth(
             response =
                 provider === "apple" ? await APIAuth.authorizeApple(exchange) : await APIAuth.authorizeGoogle(exchange);
         }
-        if (!response.success) throw new Error("로그인 서버 인증에 실패했습니다. 다시 시도해주세요.");
+        if (!response.success) throw new Error(response.data.message);
 
         const data = response.data;
         if (
@@ -113,19 +113,11 @@ export async function signInWithOAuth(
             throw new Error("로그인 서버의 응답 형식이 올바르지 않습니다.");
         }
 
-        const previousSession = await session.get();
         await session.set({
             "jwt": data.access_token,
             ...(data.needs_onboarding === undefined ? {} : { "needsOnboarding": data.needs_onboarding }),
             ...(data.expires_in === -1 ? {} : { "expiresAt": Date.now() + data.expires_in * 1000 }),
         });
-        try {
-            await userData.set({ ...(await userData.get()), "loggedIn": true });
-        } catch (error) {
-            if (previousSession) await session.set(previousSession);
-            else await session.clear();
-            throw error;
-        }
         return "success";
     } finally {
         signingIn = false;
