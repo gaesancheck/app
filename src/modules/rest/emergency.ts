@@ -6,10 +6,7 @@ export type APIMissingPetInfo = {
     "age": number;
     "neutering": boolean;
     "lastPosition": string;
-    "lastSeen": {
-        "hours"?: number;
-        "minutes"?: number;
-    };
+    "lastTime": string;
     "specials": string;
     "missingSince": number;
     "picture": string;

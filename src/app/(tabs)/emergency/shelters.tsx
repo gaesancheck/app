@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Pressable, TextInput, View } from "react-native";
-import { CareScreen, CareText, EmptyState, ui, careColors } from "@/components/CareUI";
+import { Image, Linking, Pressable, TextInput, View } from "react-native";
+import { CareScreen, CareText, EmptyState, LoadingState, CareButton, ui, careColors } from "@/components/CareUI";
 import { EmergencyNav } from "@/components/EmergencyUI";
 import SelectionDropdown from "@/components/SelectionDropdown";
 import useCareData from "@/modules/useCareData";
@@ -22,15 +22,20 @@ export default function Page() {
     const [filters, setFilters] = useState<Partial<Record<Filter, string>>>({});
     const [query, setQuery] = useState("");
     const [pets, setPets] = useState<ShelterPet[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [revision, setRevision] = useState(0);
     useEffect(() => {
         let active = true;
+        setLoading(true); setError("");
         emergencyService.getShelterPets().then(value => {
             if (active) setPets(value);
-        });
+        }).catch(reason => { if (active) setError(reason instanceof Error ? reason.message : "보호동물을 불러오지 못했어요."); })
+            .finally(() => { if (active) setLoading(false); });
         return () => {
             active = false;
         };
-    }, []);
+    }, [revision]);
     const items = pets.filter(
         item =>
             Object.entries(filters).every(([key, value]) => !value || item[key as Filter] === value) &&
@@ -90,28 +95,19 @@ export default function Page() {
                     ]}
                 />
             </View>
-            {!items.length ? (
+            {loading ? <LoadingState /> : error ? <><CareText>{error}</CareText><CareButton onPress={() => setRevision(value => value + 1)}>다시 시도</CareButton></> : !items.length ? (
                 <EmptyState>조건에 맞는 보호 동물이 없어요.</EmptyState>
             ) : (
                 items.map(item => (
                     <View key={item.id} style={ui.card}>
                         <View style={ui.pill}>
-                            <CareText style={{ "fontSize": 15, "color": careColors.green }}>보호 3일째</CareText>
+                            <CareText style={{ "fontSize": 15, "color": careColors.green }}>보호 중</CareText>
                         </View>
                         <CareText style={{ "fontSize": 19, "marginVertical": 15 }}>
                             {item.shelter} - {item.district} {item.town}
                         </CareText>
                         <View style={{ "flexDirection": "row", "gap": 12, "marginBottom": 15 }}>
-                            <View
-                                style={{
-                                    "width": 85,
-                                    "height": 85,
-                                    "backgroundColor": "#ECEEE6",
-                                    "borderWidth": 0.7,
-                                    "borderColor": "#9A9A9A",
-                                    "borderRadius": 12,
-                                }}
-                            />
+                            {item.picture ? <Image source={{ "uri": item.picture }} style={{ "width": 85, "height": 85, "borderRadius": 12 }} /> : <View style={{ "width": 85, "height": 85, "backgroundColor": "#ECEEE6", "borderRadius": 12 }} />}
                             <CareText style={{ "fontSize": 15, "lineHeight": 22 }}>
                                 견종: {item.type}
                                 {"\n"}성별: {item.gender}
@@ -129,6 +125,7 @@ export default function Page() {
                             발견 위치: {item.found}
                             {"\n"}특징: {item.specials}
                         </CareText>
+                        {item.shelterTel && <Pressable onPress={() => void Linking.openURL(`tel:${item.shelterTel}`)}><CareText>보호소 문의: {item.shelterTel}</CareText></Pressable>}
                     </View>
                 ))
             )}

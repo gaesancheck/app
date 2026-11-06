@@ -20,6 +20,8 @@ export const missingPetExamples: MissingPet[] = ["윤 솜", "김갱얼쥐", "복
 }));
 
 export type ShelterPet = {
+    "picture"?: string;
+    "shelterTel"?: string;
     "id": string;
     "shelter": string;
     "region": string;
