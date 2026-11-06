@@ -6,6 +6,7 @@ import useChooseByScheme from "@/modules/useChooseByScheme";
 import { signInWithOAuth } from "@/modules/oauth";
 import type { OAuthProvider } from "@/modules/oauthConfig";
 import session from "@/modules/session";
+import { APIAuth } from "@/modules/rest/auth";
 import { APIOnboarding } from "@/modules/rest/onboarding";
 
 import SvgBG1 from "@/assets/svg/login/asset1.svg";
@@ -95,6 +96,23 @@ export default function Page() {
                     <View style={styles.hrLine} />
                 </View>
                 <View style={styles.options}>
+                    {__DEV__ && process.env.EXPO_PUBLIC_ENABLE_DEV_AUTH === "true" && (
+                        <Pressable disabled={loginPending.current} style={styles.signInButton} onPress={async () => {
+                            if (loginPending.current) return;
+                            loginPending.current = true;
+                            setCheckingSession(true);
+                            try {
+                                const response = await APIAuth.devToken();
+                                if (!response.success) throw new Error(response.data.message);
+                                const data = response.data;
+                                await session.set({ "jwt": data.access_token, "needsOnboarding": data.needs_onboarding,
+                                    ...(data.expires_in === -1 ? {} : { "expiresAt": Date.now() + data.expires_in * 1000 }) });
+                                router.replace(data.needs_onboarding ? "/onboarding" : "/(tabs)/home");
+                            } catch (error) {
+                                Alert.alert("개발 로그인 실패", error instanceof Error ? error.message : "다시 시도해주세요.");
+                            } finally { loginPending.current = false; setCheckingSession(false); }
+                        }}><Text>개발 계정으로 로그인</Text></Pressable>
+                    )}
                     <Pressable
                         accessibilityRole="button"
                         accessibilityLabel="Google로 계속하기"

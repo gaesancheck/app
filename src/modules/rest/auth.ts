@@ -8,6 +8,10 @@ export type APIAuthSession = {
 };
 
 export const APIAuth = {
+    "devToken"(sub = "u1", name = "테스트") {
+        if (!__DEV__) throw new Error("개발 로그인은 개발 빌드에서만 사용할 수 있어요.");
+        return REST<APIAuthSession>("/v1/auth/dev/token", { "method": "POST", "data": { "sub": sub, "name": name } });
+    },
     async "authorizeGoogle"(data: OAuthExchangeRequest): Promise<RESTResponse<APIAuthSession, APIError>> {
         // POST /v1/auth/oauth/google/exchange
         // Content-Type: application/json
